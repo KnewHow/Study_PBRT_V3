@@ -1,25 +1,33 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.1.0)
 project(PBRT)
 
 file(GLOB PBRT_SOURCES
     "src/core/pbrt.h"
 )
 
-# ADD_LIBRARY (PBRT STATIC
-#   ${PBRT_SOURCES}
-# )
-
+INCLUDE_DIRECTORIES ( src/core )
+INCLUDE_DIRECTORIES ( src )
 
 add_executable(pbrt_exe src/main/pbrt.cpp)
 
 
-
-#######################extra lib ############################
+####################### extra lib ############################
 # Google logging Library
-SET(WITH_GFLAGS OFF CACHE BOOL "Use gflags")
-SET(BUILD_SHARED_LIBS OFF CACHE BOOL " " FORCE)
 find_package (glog 0.6.0 REQUIRED)
 set(GLOG_DIR "ext/glog")
 add_subdirectory("${GLOG_DIR}")
 target_link_libraries (pbrt_exe glog::glog)
+
+####################### global micro ############################
+if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  message(STATUS "Setting build type to 'Release' as none was specified.")
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release"
+    "MinSizeRel" "RelWithDebInfo")
+endif()
+
+if(CMAKE_BUILD_TYPE MATCHES RELEASE) 
+    add_definitions(-DNDEBUG)
+endif()
+
 
