@@ -59,12 +59,8 @@ public:
         y -= v.y;
         return *this;
     }
-    bool operator==(const Vector2<T> &v) const {
-        return x == v.x && y == v.y;
-    }
-    bool operator!=(const Vector2<T> &v) const {
-        return x != v.x || y == v.y;
-    }
+    bool operator==(const Vector2<T> &v) const { return x == v.x && y == v.y; }
+    bool operator!=(const Vector2<T> &v) const { return x != v.x || y != v.y; }
     template <typename U>
     Vector2<T> operator*(U u) const {
         return Vector2<T>(x * u, y * u);
