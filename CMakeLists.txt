@@ -69,16 +69,12 @@ ELSEIF(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fp-model ${FP_MODEL}")
 ENDIF()
 
-SET(PBRT_CORE_HEADERS
-    src/core/geometric.h
+file(GLOB PBRT_CORE_LIB
+    src/core/*
 )
 
-SET(PBRT_CORE_SOURCE
-    src/core/geometric.cpp
-)
 
-file(GLOB PBRT_SOURCE
-    "src/core/*"
+file(GLOB PBRT_MINOR_LIB
 )
 
 
@@ -89,17 +85,15 @@ INCLUDE_DIRECTORIES ( src )
 SOURCE_GROUP (core REGULAR_EXPRESSION src/core/.*)
 
 ADD_LIBRARY (pbrt STATIC
-  ${PBRT_YACC_LEX_SOURCE}
-  ${PBRT_CORE_HEADERS}
-  ${PBRT_CORE_SOURCE}
-  ${PBRT_SOURCE}
+  ${PBRT_CORE_LIB}
+  ${PBRT_MINOR_LIB}
 )
 ADD_SANITIZERS ( pbrt )
 
 # A non-exhaustive but pretty representative set..
 # Note that we work-around shoddy c++11 support in MSVC2013
 # (constexpr, etc.), so don't test for that stuff here
-SET ( PBRT_CXX11_FEATURES
+SET (PBRT_CXX11_FEATURES
   cxx_auto_type
   cxx_explicit_conversions
   cxx_lambdas
