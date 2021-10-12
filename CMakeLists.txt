@@ -1,22 +1,25 @@
 cmake_minimum_required(VERSION 3.1.0)
 project(PBRT)
 
-file(GLOB PBRT_SOURCES
-    "src/core/*"
-)
+#sanitizers-cmake
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/ext/sanitizers-cmake/cmake" ${CMAKE_MODULE_PATH})
+find_package(Sanitizers)
 
-INCLUDE_DIRECTORIES ( src/core )
-INCLUDE_DIRECTORIES ( src )
-
-add_executable(pbrt_exe src/main/pbrt.cpp)
 
 
 ####################### extra lib ############################
 # Google logging Library
-find_package (glog 0.6.0 REQUIRED)
-set(GLOG_DIR "ext/glog")
-add_subdirectory("${GLOG_DIR}")
-target_link_libraries (pbrt_exe glog::glog)
+SET(WITH_GFLAGS OFF CACHE BOOL "Use gflags")
+SET(BUILD_SHARED_LIBS OFF CACHE BOOL " " FORCE)
+IF(WIN32)
+  ADD_DEFINITIONS( -D GOOGLE_GLOG_DLL_DECL= )
+ENDIF()
+add_subdirectory(ext/glog)
+SET_PROPERTY(TARGET glog logging_unittest demangle_unittest utilities_unittest stl_logging_unittest PROPERTY FOLDER "ext")
+INCLUDE_DIRECTORIES (
+  ext/glog/src
+  ${CMAKE_BINARY_DIR}/ext/glog
+)
 
 ####################### global micro ############################
 # DEBUG OR RELEASE
@@ -66,14 +69,63 @@ ELSEIF(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fp-model ${FP_MODEL}")
 ENDIF()
 
-# ADD_SANITIZERS ( pbrt )
+SET(PBRT_CORE_HEADERS
+    src/core/geometric.h
+)
 
-# SET ( PBRT_CXX11_FEATURES
-#   cxx_auto_type
-#   cxx_explicit_conversions
-#   cxx_lambdas
-#   cxx_nullptr
-#   cxx_range_for
-#   cxx_static_assert
-# )
-# TARGET_COMPILE_FEATURES ( pbrt PRIVATE ${PBRT_CXX11_FEATURES} )
+SET(PBRT_CORE_SOURCE
+    src/core/geometric.cpp
+)
+
+file(GLOB PBRT_SOURCE
+    "src/core/*"
+)
+
+
+INCLUDE_DIRECTORIES ( src/core )
+INCLUDE_DIRECTORIES ( src )
+
+# Visual Studio source folders
+SOURCE_GROUP (core REGULAR_EXPRESSION src/core/.*)
+
+ADD_LIBRARY (pbrt STATIC
+  ${PBRT_YACC_LEX_SOURCE}
+  ${PBRT_CORE_HEADERS}
+  ${PBRT_CORE_SOURCE}
+  ${PBRT_SOURCE}
+)
+ADD_SANITIZERS ( pbrt )
+
+# A non-exhaustive but pretty representative set..
+# Note that we work-around shoddy c++11 support in MSVC2013
+# (constexpr, etc.), so don't test for that stuff here
+SET ( PBRT_CXX11_FEATURES
+  cxx_auto_type
+  cxx_explicit_conversions
+  cxx_lambdas
+  cxx_nullptr
+  cxx_range_for
+  cxx_static_assert
+)
+TARGET_COMPILE_FEATURES ( pbrt PRIVATE ${PBRT_CXX11_FEATURES} )
+
+IF (WIN32)
+  # Avoid a name clash when building on Visual Studio
+  SET_TARGET_PROPERTIES ( pbrt PROPERTIES OUTPUT_NAME libpbrt )
+ENDIF()
+
+SET(ALL_PBRT_LIBS
+  pbrt
+  glog
+)
+
+# Main renderer
+ADD_EXECUTABLE ( pbrt_exe src/main/pbrt.cpp )
+ADD_SANITIZERS ( pbrt_exe )
+
+SET_TARGET_PROPERTIES ( pbrt_exe PROPERTIES OUTPUT_NAME pbrt )
+TARGET_COMPILE_FEATURES ( pbrt_exe PRIVATE ${PBRT_CXX11_FEATURES} )
+TARGET_LINK_LIBRARIES ( pbrt_exe ${ALL_PBRT_LIBS} )
+
+
+

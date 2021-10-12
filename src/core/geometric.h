@@ -7,6 +7,8 @@
 #define PBRT_SRC_CORE_GEOMETRIC_H_
 
 #include "pbrt.h"
+
+
 #include "stringprint.h"
 
 namespace pbrt {

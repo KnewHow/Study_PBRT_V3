@@ -1,3 +1,6 @@
 [submodule "ext/glog"]
 	path = ext/glog
 	url = git@github.com:google/glog.git
+[submodule "ext/sanitizers-cmake"]
+	path = ext/sanitizers-cmake
+	url = git@github.com:arsenm/sanitizers-cmake.git
