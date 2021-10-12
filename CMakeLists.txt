@@ -38,7 +38,6 @@ endif()
 
 ####################### compiler params ############################
 # Annoying compiler-specific details
-
 IF(CMAKE_COMPILER_IS_GNUCXX)
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-conversion-null")
@@ -66,3 +65,15 @@ ELSEIF(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
 
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fp-model ${FP_MODEL}")
 ENDIF()
+
+# ADD_SANITIZERS ( pbrt )
+
+# SET ( PBRT_CXX11_FEATURES
+#   cxx_auto_type
+#   cxx_explicit_conversions
+#   cxx_lambdas
+#   cxx_nullptr
+#   cxx_range_for
+#   cxx_static_assert
+# )
+# TARGET_COMPILE_FEATURES ( pbrt PRIVATE ${PBRT_CXX11_FEATURES} )
