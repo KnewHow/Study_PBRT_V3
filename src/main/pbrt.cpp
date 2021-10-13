@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "pbrt.h"
-#include "geometric.h"
+#include "geometry.h"
 
 using namespace pbrt;
 

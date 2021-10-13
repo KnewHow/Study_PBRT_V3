@@ -3,8 +3,8 @@
 #pragma once
 #endif
 
-#ifndef PBRT_SRC_CORE_GEOMETRIC_H_
-#define PBRT_SRC_CORE_GEOMETRIC_H_
+#ifndef PBRT_SRC_CORE_GEOMETRY_H_
+#define PBRT_SRC_CORE_GEOMETRY_H_
 
 #include "pbrt.h"
 

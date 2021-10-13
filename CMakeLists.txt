@@ -116,10 +116,20 @@ SET(ALL_PBRT_LIBS
 # Main renderer
 ADD_EXECUTABLE ( pbrt_exe src/main/pbrt.cpp )
 ADD_SANITIZERS ( pbrt_exe )
-
 SET_TARGET_PROPERTIES ( pbrt_exe PROPERTIES OUTPUT_NAME pbrt )
 TARGET_COMPILE_FEATURES ( pbrt_exe PRIVATE ${PBRT_CXX11_FEATURES} )
 TARGET_LINK_LIBRARIES ( pbrt_exe ${ALL_PBRT_LIBS} )
 
+# Unit test
+FILE (GLOB PBRT_TEST_SOURCE
+  src/tests/*.cpp
+  src/tests/gtest/*.cc
+)
+ENABLE_TESTING()
+ADD_SANITIZERS ( pbrt_test )
+ADD_EXECUTABLE ( pbrt_test ${PBRT_TEST_SOURCE} )
+TARGET_COMPILE_FEATURES ( pbrt_test PRIVATE ${PBRT_CXX11_FEATURES} )
+TARGET_LINK_LIBRARIES ( pbrt_test ${ALL_PBRT_LIBS} )
+ADD_TEST ( pbrt_unit_test pbrt_test )
 
 
