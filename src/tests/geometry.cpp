@@ -162,3 +162,8 @@ TEST(Vector3f, OperateTest) {
     EXPECT_TRUE(compare_float(v1.Length(), std::sqrt(Float(v1.x * v1.x + v1.y * v1.y + v1.z * v1.z))));
 }
 
+TEST(Point2i, OperateTest) {
+    Point2i p1(1,2);
+    Vector2i v1(p1);
+}
+

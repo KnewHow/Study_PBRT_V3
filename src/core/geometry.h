@@ -7,8 +7,6 @@
 #define PBRT_SRC_CORE_GEOMETRY_H_
 
 #include "pbrt.h"
-
-
 #include "stringprint.h"
 
 namespace pbrt {
@@ -33,6 +31,8 @@ public:
         y = v.y;
     }
     bool HasNaNs() const { return isNaN(x) || isNaN(y);}
+    explicit Vector2(const Point2<T> &p);
+    explicit Vector2(const Point3<T> &p);
     Vector2<T> &operator=(const Vector2<T> &v) {
         DCHECK(!v.HasNaNs());
         x = v.x;
@@ -222,6 +222,29 @@ typedef Vector2<int> Vector2i;
 typedef Vector2<Float> Vector2f;
 typedef Vector3<int> Vector3i;
 typedef Vector3<Float> Vector3f;
+
+template <typename T>
+class Point2 {
+public:
+    Point2(): x(0), y(0){}
+    Point2(T x, T y): x(x), y(y){}
+    Point2(const Point2<T> &p) {
+        DCHECK(!p.HasNaNs());
+        x = p.x;
+        y = p.y;
+    }
+    bool HasNaNs() const {return isNaN(x) || isNaN(y); }
+
+    T x,y;
+};
+
+typedef Point2<int> Point2i;
+typedef Point2<Float> Point2f;
+
+template <typename T>
+Vector2<T>::Vector2(const Point2<T> &p): x(p.x), y(p.y) {
+    DCHECK(!HasNaNs());
+}
 
 } // namespace pbrt
 
