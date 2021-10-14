@@ -36,9 +36,14 @@ inline bool compare_float(const Float &v1, const Float &v2) {
     return std::abs(v1 - v2) < Epsilon;
 }
 
-inline bool compare_vector2_float(const Vector2f &v1, const Vector2f &v2) {
+inline bool compare_vector_float(const Vector2f &v1, const Vector2f &v2) {
     Vector2f r = v1 - v2;
     return compare_float(r.x, 0.0f) && compare_float(r.y, 0.0f); 
+}
+
+inline bool compare_vector_float(const Vector3f &v1, const Vector3f &v2) {
+    Vector3f r = v1 - v2;
+    return compare_float(r.x, 0.0f) && compare_float(r.y, 0.0f) && compare_float(r.z, 0); 
 }
 
 TEST(Vector2i, OperateTest) {
@@ -61,6 +66,28 @@ TEST(Vector2i, OperateTest) {
     EXPECT_EQ(-v0, Vector2i(-v0.x, -v0.y));
 }
 
+TEST(Vector3i, OperateTest) {
+    int begin = -1000;
+    int end = 1000;
+    int x0 = get_random_int(begin, end);
+    int y0 = get_random_int(begin, end);
+    int z0 = get_random_int(begin, end);
+    int x1 = get_random_int(begin, end);
+    int y1 = get_random_int(begin, end);
+    int z1 = get_random_int(begin, end);
+    int u = get_random_int(begin, end);
+
+    Vector3i v0(x0, y0, z0);
+    Vector3i v1(x1, y1, z1);
+    EXPECT_NE(v0, v1);
+    EXPECT_EQ(v0 + v1, Vector3i(v0.x + v1.x, v0.y + v1.y, v0.z + v1.z));
+    EXPECT_EQ(v0 += v1, Vector3i(v0.x + v1.x, v0.y + v1.y, v0.z + v1.z));
+
+    EXPECT_EQ(v0 - v1, Vector3i(v0.x - v1.x, v0.y - v1.y, v0.z - v1.z));
+    EXPECT_EQ(v1 -= v0, Vector3i(v1.x - v0.x, v1.y - v0.y, v1.z - v0.z));
+    EXPECT_EQ(-v0, Vector3i(-v0.x, -v0.y, -v0.z));
+}
+
 
 TEST(Vector2f, OperateTest) {
     Float begin = -1000.0;
@@ -74,27 +101,64 @@ TEST(Vector2f, OperateTest) {
 
     Vector2f v0(x0, y0);
     Vector2f v1(x1, y1);
-    Vector2f r0;
-    Vector2f r1;
-    bool rb;
+
     EXPECT_NE(v0, v1);
-    EXPECT_TRUE(compare_vector2_float(v0 + v1, Vector2f(v0.x + v1.x, v0.y + v1.y)));
-    EXPECT_TRUE(compare_vector2_float(v0 += v1, Vector2f(v0.x + v1.x, v0.y + v1.y)));
+    EXPECT_TRUE(compare_vector_float(v0 + v1, Vector2f(v0.x + v1.x, v0.y + v1.y)));
+    EXPECT_TRUE(compare_vector_float(v0 += v1, Vector2f(v0.x + v1.x, v0.y + v1.y)));
 
-    EXPECT_TRUE(compare_vector2_float(v0 - v1, Vector2f(v0.x - v1.x, v0.y - v1.y)));
-    EXPECT_TRUE(compare_vector2_float(v1 -= v0, Vector2f(v1.x - v0.x, v1.y - v0.y)));
+    EXPECT_TRUE(compare_vector_float(v0 - v1, Vector2f(v0.x - v1.x, v0.y - v1.y)));
+    EXPECT_TRUE(compare_vector_float(v1 -= v0, Vector2f(v1.x - v0.x, v1.y - v0.y)));
 
-    EXPECT_TRUE(compare_vector2_float(v0 * u, Vector2f(v0.x * u, v0.y * u)));
-    EXPECT_TRUE(compare_vector2_float(v1 *= u, Vector2f(v1.x * u, v1.y * u)));
+    EXPECT_TRUE(compare_vector_float(v0 * u, Vector2f(v0.x * u, v0.y * u)));
+    EXPECT_TRUE(compare_vector_float(v1 *= u, Vector2f(v1.x * u, v1.y * u)));
 
       
-    EXPECT_TRUE(compare_vector2_float(v0 / u, Vector2f(v0.x / u, v0.y / u)));
-    EXPECT_TRUE(compare_vector2_float(v1 /= u, Vector2f(v1.x / u, v1.y / u)));
+    EXPECT_TRUE(compare_vector_float(v0 / u, Vector2f(v0.x / u, v0.y / u)));
+    EXPECT_TRUE(compare_vector_float(v1 /= u, Vector2f(v1.x / u, v1.y / u)));
 
-    EXPECT_TRUE(compare_vector2_float(-v0, Vector2f(-v0.x, -v0.y)));
+    EXPECT_TRUE(compare_vector_float(-v0, Vector2f(-v0.x, -v0.y)));
     EXPECT_TRUE(compare_float(v0[0], v0.x));
     EXPECT_TRUE(compare_float(v0[1], v0.y));
 
     EXPECT_TRUE(compare_float(v0.LengthSquared(), Float(v0.x * v0.x + v0.y * v0.y)));
     EXPECT_TRUE(compare_float(v1.Length(), std::sqrt(Float(v1.x * v1.x + v1.y * v1.y))));
 }
+
+TEST(Vector3f, OperateTest) {
+    Float begin = -1000.0;
+    Float end = 1000.0;
+    Float x0 = get_random_float(begin, end);
+    Float y0 = get_random_float(begin, end);
+    Float z0 = get_random_float(begin, end);
+    Float x1 = get_random_float(begin, end);
+    Float y1 = get_random_float(begin, end);
+    Float z1 = get_random_float(begin, end);
+    Float u = get_random_float(begin, end);
+
+
+    Vector3f v0(x0, y0, z0);
+    Vector3f v1(x1, y1, z1);
+
+    EXPECT_NE(v0, v1);
+    EXPECT_TRUE(compare_vector_float(v0 + v1, Vector3f(v0.x + v1.x, v0.y + v1.y, v0.z + v1.z)));
+    EXPECT_TRUE(compare_vector_float(v0 += v1, Vector3f(v0.x + v1.x, v0.y + v1.y, v0.z + v1.z)));
+
+    EXPECT_TRUE(compare_vector_float(v0 - v1, Vector3f(v0.x - v1.x, v0.y - v1.y, v0.z - v1.z)));
+    EXPECT_TRUE(compare_vector_float(v1 -= v0, Vector3f(v1.x - v0.x, v1.y - v0.y, v1.z - v0.z)));
+
+    EXPECT_TRUE(compare_vector_float(v0 * u, Vector3f(v0.x * u, v0.y * u, v0.z * u)));
+    EXPECT_TRUE(compare_vector_float(v1 *= u, Vector3f(v1.x * u, v1.y * u, v1.z * u)));
+
+      
+    EXPECT_TRUE(compare_vector_float(v0 / u, Vector3f(v0.x / u, v0.y / u, v0.z / u)));
+    EXPECT_TRUE(compare_vector_float(v1 /= u, Vector3f(v1.x / u, v1.y / u, v1.z / u)));
+
+    EXPECT_TRUE(compare_vector_float(-v0, Vector3f(-v0.x, -v0.y, -v0.z)));
+    EXPECT_TRUE(compare_float(v0[0], v0.x));
+    EXPECT_TRUE(compare_float(v0[1], v0.y));
+    EXPECT_TRUE(compare_float(v0[2], v0.z));
+
+    EXPECT_TRUE(compare_float(v0.LengthSquared(), Float(v0.x * v0.x + v0.y * v0.y + v0.z * v0.z)));
+    EXPECT_TRUE(compare_float(v1.Length(), std::sqrt(Float(v1.x * v1.x + v1.y * v1.y + v1.z * v1.z))));
+}
+
