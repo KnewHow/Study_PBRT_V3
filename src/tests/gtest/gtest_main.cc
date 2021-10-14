@@ -40,6 +40,8 @@ GTEST_API_ int main(int argc, char **argv) {
   FLAGS_stderrthreshold = 1; // Warning and above.
   printf("Running main() from gtest_main.cc\n");
   testing::InitGoogleTest(&argc, argv);
-  
+  #ifndef NDEBUG
+    FLAGS_logtostderr = true;
+  #endif
   return RUN_ALL_TESTS();
 }

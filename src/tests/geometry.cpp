@@ -32,6 +32,14 @@ inline int get_random_int(int begin, int end) {
     return dist(rng);
 }
 
+inline bool compare_float(const Float &v1, const Float &v2) {
+    return std::abs(v1 - v2) < Epsilon;
+}
+
+inline bool compare_vector2_float(const Vector2f &v1, const Vector2f &v2) {
+    Vector2f r = v1 - v2;
+    return compare_float(r.x, 0.0f) && compare_float(r.y, 0.0f); 
+}
 
 TEST(Vector2i, OperateTest) {
     int begin = -1000;
@@ -44,28 +52,13 @@ TEST(Vector2i, OperateTest) {
 
     Vector2i v0(x0, y0);
     Vector2i v1(x1, y1);
-    LOG(INFO) << "v0 is: " << v0 << ", v1 is: " << v1 <<", u is: " << u;
     EXPECT_NE(v0, v1);
     EXPECT_EQ(v0 + v1, Vector2i(v0.x + v1.x, v0.y + v1.y));
     EXPECT_EQ(v0 += v1, Vector2i(v0.x + v1.x, v0.y + v1.y));
 
     EXPECT_EQ(v0 - v1, Vector2i(v0.x - v1.x, v0.y - v1.y));
     EXPECT_EQ(v1 -= v0, Vector2i(v1.x - v0.x, v1.y - v0.y));
-
-    EXPECT_EQ(v0 * u, Vector2i(v0.x * u, v0.y * u));
-    EXPECT_EQ(v1 *= u, Vector2i(v1.x * u, v1.y * u));
-
-    EXPECT_EQ(v0 / u, Vector2i(v0.x / u, v0.y / u));
-    EXPECT_EQ(v1 /= u, Vector2i(v1.x / u, v1.y / u));
-
     EXPECT_EQ(-v0, Vector2i(-v0.x, -v0.y));
-    EXPECT_EQ(v0[0], v0.x);
-    EXPECT_EQ(v0[1], v0.y);
-
-    EXPECT_EQ(v0.LengthSquared(), Float(v0.x * v0.x + v0.y * v0.y));
-    EXPECT_EQ(v1.Length(), std::sqrt(Float(v1.x * v1.x + v1.y * v1.y)));
-    LOG(INFO) << "v1 length: " << v1.Length() << ", hand cal:" << std::sqrt(Float(v1.x * v1.x + v1.y * v1.y));
-
 }
 
 
@@ -84,34 +77,24 @@ TEST(Vector2f, OperateTest) {
     Vector2f r0;
     Vector2f r1;
     bool rb;
-    LOG(INFO) << "v0 is: " << v0 << ", v1 is: " << v1 <<", u is: " << u;
     EXPECT_NE(v0, v1);
-    EXPECT_EQ(v0 + v1, Vector2f(v0.x + v1.x, v0.y + v1.y));
-    EXPECT_EQ(v0 += v1, Vector2f(v0.x + v1.x, v0.y + v1.y));
+    EXPECT_TRUE(compare_vector2_float(v0 + v1, Vector2f(v0.x + v1.x, v0.y + v1.y)));
+    EXPECT_TRUE(compare_vector2_float(v0 += v1, Vector2f(v0.x + v1.x, v0.y + v1.y)));
 
-    EXPECT_EQ(v0 - v1, Vector2f(v0.x - v1.x, v0.y - v1.y));
-    EXPECT_EQ(v1 -= v0, Vector2f(v1.x - v0.x, v1.y - v0.y));
+    EXPECT_TRUE(compare_vector2_float(v0 - v1, Vector2f(v0.x - v1.x, v0.y - v1.y)));
+    EXPECT_TRUE(compare_vector2_float(v1 -= v0, Vector2f(v1.x - v0.x, v1.y - v0.y)));
 
-    EXPECT_EQ(v0 * u, Vector2f(v0.x * u, v0.y * u));
-    EXPECT_EQ(v1 *= u, Vector2f(v1.x * u, v1.y * u));
+    EXPECT_TRUE(compare_vector2_float(v0 * u, Vector2f(v0.x * u, v0.y * u)));
+    EXPECT_TRUE(compare_vector2_float(v1 *= u, Vector2f(v1.x * u, v1.y * u)));
 
       
-    r0 = Vector2f(v0.x / u, v0.y / u);
-    r1 = v0 / u;
-    rb = (abs(r0.x - r1.x) < Epsilon) &&  (abs(r0.y - r1.y) < Epsilon);
-    EXPECT_TRUE(rb);
-    
-    r0 = Vector2f(v1.x / u, v1.y / u);
-    r1 = v1 /= u;
-    rb = (abs(r0.x - r1.x) < Epsilon) &&  (abs(r0.y - r1.y) < Epsilon);
-    EXPECT_TRUE(rb);
+    EXPECT_TRUE(compare_vector2_float(v0 / u, Vector2f(v0.x / u, v0.y / u)));
+    EXPECT_TRUE(compare_vector2_float(v1 /= u, Vector2f(v1.x / u, v1.y / u)));
 
-    EXPECT_EQ(-v0, Vector2f(-v0.x, -v0.y));
-    EXPECT_EQ(v0[0], v0.x);
-    EXPECT_EQ(v0[1], v0.y);
+    EXPECT_TRUE(compare_vector2_float(-v0, Vector2f(-v0.x, -v0.y)));
+    EXPECT_TRUE(compare_float(v0[0], v0.x));
+    EXPECT_TRUE(compare_float(v0[1], v0.y));
 
-    EXPECT_EQ(v0.LengthSquared(), Float(v0.x * v0.x + v0.y * v0.y));
-    EXPECT_EQ(v1.Length(), std::sqrt(Float(v1.x * v1.x + v1.y * v1.y)));
-    LOG(INFO) << "v1 length: " << v1.Length() << ", hand cal:" << std::sqrt(Float(v1.x * v1.x + v1.y * v1.y));
-
+    EXPECT_TRUE(compare_float(v0.LengthSquared(), Float(v0.x * v0.x + v0.y * v0.y)));
+    EXPECT_TRUE(compare_float(v1.Length(), std::sqrt(Float(v1.x * v1.x + v1.y * v1.y))));
 }
