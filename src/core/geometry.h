@@ -476,6 +476,104 @@ typedef Point3<int> Point3i;
 typedef Point3<Float> Point3f;
 
 template <typename T>
+class Normal3 {
+public:
+    Normal3(): x(0), y(0), z(0){}
+    Normal3(T x, T y, T z): x(x), y(y), z(z){ DCHECK(!HasNaNs()); }
+    Normal3(const Normal3<T> &n): x(n.x), y(n.y), z(n.z) { DCHECK(!HasNaNs()); }
+    explicit Normal3(const Vector3<T> &v): x(v.x), y(v.y), z(v.z) { DCHECK(!HasNaNs()); }
+    bool HasNaNs() const { return isNaN(x) || isNaN(y) || isNaN(z); }
+    Normal3<T> &operator=(const Normal3<T> &n) {
+        DCHECK(!n.HasNaNs());
+        x = n.x;
+        y = n.y;
+        z = n.z;
+        return *this;
+    }
+    Normal3<T> operator+(const Normal3<T> &n) const {
+        DCHECK(!n.HasNaNs());
+        return Normal3<T>(x + n.x, y + n.y, z + n.z);
+    }
+    Normal3<T> &operator+=(const Normal3<T> &n) {
+        DCHECK(!n.HasNaNs());
+        x += n.x;
+        y += n.y;
+        z += n.z;
+        return *this;
+    }
+    Normal3<T> operator-(const Normal3<T> &n) const {
+        DCHECK(!n.HasNaNs());
+        return Normal3<T>(x - n.x, y - n.y, z - n.z);
+    }
+    Normal3<T> &operator-=(const Normal3<T> &n) {
+        DCHECK(!n.HasNaNs());
+        x -= n.x;
+        y -= n.y;
+        z -= n.z;
+        return *this;
+    }
+    template <typename U>
+    Normal3<T> operator*(U u) const {
+        DCHECK(!isNaN(u));
+        return Normal3<T>(x * u, y * u, z * u);
+    }
+    template <typename U>
+    Normal3<T> &operator*=(U u) {
+        DCHECK(!isNaN(u));
+        x *= u;
+        y *= u;
+        z *= u;
+        return *this;
+    }
+    template <typename U>
+    Normal3<T> operator/(U u) const {
+        DCHECK(!isNaN(u));
+        Float inv = (Float)1 / u;
+        return Normal3<T>(x * inv, y * inv, z * inv);
+    }
+    template <typename U>
+    Normal3<T> &operator/=(U u) {
+        DCHECK(!isNaN(u));
+        Float inv = (Float)1 / u;
+        x *= inv;
+        y *= inv;
+        z *= inv;
+        return *this;
+    }
+    Normal3<T> operator-() const { return Normal3<T>(-x, -y, -z); }
+    T operator[](int i) const {
+        DCHECK(i >= 0 && i <= 2);
+        if(i == 0) return x;
+        else if(i == 1) return y;
+        else return z;
+    }
+    T &operator[](int i) {
+        DCHECK(i >= 0 && i <= 2);
+        if(i == 0) return x;
+        else if(i == 1) return y;
+        else return z;
+    }
+    bool operator==(const Normal3<T> &n) const { return x == n.x && y == n.y && z == n.z; }
+    bool operator!=(const Normal3<T> &n) const { return x != n.x || y != n.y || z != n.z; }
+    Float LengthSquared() const { return x * x + y * y + z * z; }
+    Float Length() const { return std::sqrt(LengthSquared()); }
+    T x, y, z;
+};
+
+template <typename T>
+inline std::ostream &operator<<(std::ostream &os, const Normal3<T> &n) {
+    os << "[" << n.x << ", " << n.y << ", " << n.z << "]";
+    return os;
+}
+
+inline std::ostream &operator<<(std::ostream &os, const Normal3<Float> &n) {
+    os << StringPrintf("[%f, %f, %f]", n.x, n.y, n.z);
+    return os;
+}
+
+typedef Normal3<Float> Normal3f;
+
+template <typename T>
 Vector2<T>::Vector2(const Point2<T> &p): x(p.x), y(p.y) { DCHECK(!HasNaNs()); }
 
 template <typename T>
