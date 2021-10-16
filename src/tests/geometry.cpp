@@ -318,3 +318,9 @@ TEST(Normal3f, OperateTest) {
     EXPECT_TRUE(compare_float(n1.Length(), std::sqrt(Float(n1.x * n1.x + n1.y * n1.y + n1.z * n1.z))));
 }
 
+TEST(Bound2f, OperatorTest) {
+    Bound2f b1 = Bound2f(Point2f(0, 0), Point2f(1, 1));
+    const Point2f pMin = b1[0];
+    //pMin.x = 0.5;
+}
+

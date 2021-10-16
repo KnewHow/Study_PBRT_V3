@@ -574,10 +574,74 @@ inline std::ostream &operator<<(std::ostream &os, const Normal3<Float> &n) {
 typedef Normal3<Float> Normal3f;
 
 template <typename T>
+class Bound2 {
+public:
+    Bound2() {
+        T minV = std::numeric_limits<T>::lowest();
+        T maxV = std::numeric_limits<T>::max();
+        pMin = Point2<T>(maxV, maxV);
+        pMax = Point2<T>(minV, minV);
+    }
+    explicit Bound2(const Point2<T> &p): pMin(p), pMax(p){}
+    Bound2(const Point2<T> &p0, const Point2<T> &p1) {
+        pMin = Point2<T>(std::min(p0.x, p1.x), std::min(p0.y, p1.y));
+        pMax = Point2<T>(std::max(p0.x, p1.x), std::max(p0.y, p1.y));
+    }
+    template <typename U>
+    explicit operator Bound2<U>() const {
+        return Bound2<U>((Point2<U>)pMin, (Point2<U>)pMax);
+    }
+    Vector2<T> Diagonal() const { return pMax - pMin; }
+    T Area() const {
+        Vector2<T> diag = Diagonal();
+        return diag.x * diag.y;
+    }
+    int MaximumExtent() const {
+        Vector2<T> diag = Diagonal();
+        if(diag.x > diag.y) return 0;
+        else return 1;
+    }
+    inline const Point2<T> &operator[](int i) const {
+        DCHECK(i >= 0 && i <= 1);
+        return i == 0 ? pMin : pMax;
+    }
+    inline Point2<T> &operator[](int i) {
+        DCHECK(i >= 0 && i <= 1);
+        return i == 0 ? pMin : pMax;
+    }
+    bool operator==(const Bound2<T> &b) const { return pMin == b.pMin && pMax == b.pMax; }
+    bool operator!=(const Bound2<T> &b) const { return pMin != b.pMin || pMax != b.pMax; }
+    Point2<T> Lerp(const Point2f &p) const {
+        return Point2<T>(pbrt::Lerp(p.x, pMin.x, pMax.x), 
+                         pbrt::Lerp(p.y, pMin.y, pMax.y));
+    }
+    Vector2<T> Offset(const Point2<T> &p) const {
+        Vector2<T> r = p - pMin;
+        if(pMax.x > pMin.y) r.x /= (pMax.x - pMin.x);
+        if(pMax.y > pMin.y) r.y /= (pMax.y - pMin.y);
+        return r;
+    }
+    void BoundingSphere(Point2<T> &o, Float &r) const {
+        o = 0.5 * (pMin + pMax);
+    }
+    Point2<T> pMin, pMax;
+};
+
+typedef Bound2<int> Bound2i;
+typedef Bound2<Float> Bound2f;
+
+template <typename T>
 Vector2<T>::Vector2(const Point2<T> &p): x(p.x), y(p.y) { DCHECK(!HasNaNs()); }
 
 template <typename T>
 Vector2<T>::Vector2(const Point3<T> &p): x(p.x), y(p.y) { DCHECK(!HasNaNs()); }
+
+template <typename T>
+bool Inside(const Point2<T> &p, const Bound2<T> & b) {
+    return p.x >= b.pMin.x && p.y >= b.pMin.y && p.x <= b.pMax.x && p.y <= b.pMax.y;
+}
+
+template <typename T> // TODO
 
 } // namespace pbrt
 
