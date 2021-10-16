@@ -321,6 +321,7 @@ TEST(Normal3f, OperateTest) {
 TEST(Bound2f, OperatorTest) {
     Bound2f b1 = Bound2f(Point2f(0, 0), Point2f(1, 1));
     const Point2f pMin = b1[0];
+    LOG(INFO) << b1;
     //pMin.x = 0.5;
 }
 

@@ -623,8 +623,19 @@ public:
     }
     void BoundingSphere(Point2<T> &o, Float &r) const {
         o = 0.5 * (pMin + pMax);
+        return Inside(o, *this) ? Distance(pMin, pMax) : 0;
+    }
+    friend inline std::ostream &operator<<(std::ostream& os, const Bound2<T> &b) {
+        os << "[" << b.pMin << "-" << b.pMax << "]";
+        return os;
     }
     Point2<T> pMin, pMax;
+};
+
+template <typename T>
+class Bound3 {
+public:
+   Point3<T> pMin, pMax;
 };
 
 typedef Bound2<int> Bound2i;
@@ -637,11 +648,26 @@ template <typename T>
 Vector2<T>::Vector2(const Point3<T> &p): x(p.x), y(p.y) { DCHECK(!HasNaNs()); }
 
 template <typename T>
-bool Inside(const Point2<T> &p, const Bound2<T> & b) {
-    return p.x >= b.pMin.x && p.y >= b.pMin.y && p.x <= b.pMax.x && p.y <= b.pMax.y;
+bool Inside(const Point2<T> &p, const Bound2<T> &b) {
+    return p.x >= b.pMin.x && p.y >= b.pMin.y && 
+           p.x <= b.pMax.x && p.y <= b.pMax.y;
 }
 
-template <typename T> // TODO
+template <typename T> 
+bool Inside(const Point3<T> &p, const Bound3<T> &b) {
+    return p.x >= b.pMin.x && p.y >= b.pMin.y && p.z >= b.pMin.z &&
+           p.x <= b.pMax.x && p.y <= b.pMax.y && p.z <= b.pMax.z;
+}
+
+template <typename T>
+inline Float Distance(const Point2<T> &p0, const Point2<T> &p1) {
+    return (p0 - p1).Length();
+}
+
+template <typename T>
+inline Float Distance(const Point3<T> &p0, const Point3<T> &p1) {
+    return (p0 - p1).Length();
+}
 
 } // namespace pbrt
 
