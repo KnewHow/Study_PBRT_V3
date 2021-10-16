@@ -360,6 +360,13 @@ public:
     }
     bool HasNaNs() const { return isNaN(x) || isNaN(y) || isNaN(z); }
     template <typename U>
+    explicit Point3(const Vector3<U> &v) {
+        x = (T)v.x;
+        y = (T)v.y;
+        z = (T)v.z;
+        DCHECK(!HasNaNs());
+    }
+    template <typename U>
     explicit operator Vector3<U>() const {
         return Vector3<U>(x, y, z);
     }
@@ -388,7 +395,7 @@ public:
         DCHECK(!v.HasNaNs());
         x += v.x;
         y += v.y;
-        z += v.y;
+        z += v.z;
         return *this;
     }
     Vector3<T> operator-(const Point3<T> &p) const {
@@ -406,7 +413,7 @@ public:
         z -= v.z;
         return *this;
     }
-    Point3<T> operator-() const { return Point3<T>(-x, -y); }
+    Point3<T> operator-() const { return Point3<T>(-x, -y, -z); }
     template <typename U>
     Point3<T> operator*(U u) const {
         DCHECK(!isNaN(u));
@@ -430,9 +437,9 @@ public:
     Point3<T> &operator/=(U u) {
         DCHECK(!isNaN(u));
         Float inv = (Float)1 / u;
-        x *= u;
-        y *= u;
-        z *= u;
+        x *= inv;
+        y *= inv;
+        z *= inv;
         return *this;
     }
     T operator[](int i) const {
@@ -469,9 +476,10 @@ typedef Point3<int> Point3i;
 typedef Point3<Float> Point3f;
 
 template <typename T>
-Vector2<T>::Vector2(const Point2<T> &p): x(p.x), y(p.y) {
-    DCHECK(!HasNaNs());
-}
+Vector2<T>::Vector2(const Point2<T> &p): x(p.x), y(p.y) { DCHECK(!HasNaNs()); }
+
+template <typename T>
+Vector2<T>::Vector2(const Point3<T> &p): x(p.x), y(p.y) { DCHECK(!HasNaNs()); }
 
 } // namespace pbrt
 
