@@ -6,8 +6,11 @@
 #ifndef PBRT_SRC_CORE_GEOMETRY_H_
 #define PBRT_SRC_CORE_GEOMETRY_H_
 
+#include <iterator>
+
 #include "pbrt.h"
 #include "stringprint.h"
+
 
 namespace pbrt {
 
@@ -712,6 +715,53 @@ typedef Bounds2<int> Bounds2i;
 typedef Bounds2<Float> Bounds2f;
 typedef Bounds3<int> Bounds3i;
 typedef Bounds3<Float> Bounds3f;
+
+class Bounds2iIterator: public std::forward_iterator_tag { // iterator for bounds2i, use this, the range of point is pMin to pMax(don't contain)
+public:
+    Bounds2iIterator(const Bounds2i &b, const Point2i & p): b(b), p(p){}
+    Bounds2iIterator operator++() {
+        advance();
+        return *this;
+    }
+    Bounds2iIterator operator++(int) {
+        Bounds2iIterator old = *this;
+        advance();
+        return old;
+    }
+    bool operator==(const Bounds2iIterator &bi) const {
+        return b == bi.b && p == bi.p;
+    }
+    bool operator!=(const Bounds2iIterator &bi) const {
+        return b != bi.b || p != bi.p;
+    }
+    Point2i operator*() const { return p; }
+private:
+    void advance() {
+        ++p.x;
+        if(p.x == b.pMax.x) {
+            p.x = b.pMin.x;
+            ++p.y;
+        }
+    }
+    Point2i p; // current interted point
+    const Bounds2i &b; // the bounds need to iterate
+};
+
+inline Bounds2iIterator begin(const Bounds2i& b) {
+    return Bounds2iIterator(b, b.pMin);
+}
+
+inline Bounds2iIterator end(const Bounds2i& b) {
+    // Normally, the ending point is at the minimum x value and one past
+    // the last valid y value.
+    Point2i pEnd(b.pMin.x, b.pMax.y);
+    // However, if the bounds are degenerate, override the end point to
+    // equal the start point so that any attempt to iterate over the bounds
+    // exits out immediately.
+    if(b.pMin.x >= b.pMax.x || b.pMin.y >= b.pMax.y)
+        pEnd = b.pMin;
+    return Bounds2iIterator(b, pEnd);
+}
 
 class Ray {
 public:

@@ -320,9 +320,13 @@ TEST(Normal3f, OperateTest) {
 
 TEST(Bounds2f, OperatorTest) {
     Bounds3f b = Bounds3f(Point3f(0, 0, 0), Point3f(1, 1, 1));
-    //LOG(INFO) << b1;
 
-
+    Bounds2i b1 = Bounds2i(Point2i(0, 0), Point2i(2,2));
+    LOG(INFO) << b1;
+    LOG(INFO) << "iterate bounds2i";
+    for(Point2i p: b1) {
+        LOG(INFO) << p;
+    }
     Point3f p(0, 0, 0);
     Vector3f v(1, 2, 3);
     Ray r(p, v);
