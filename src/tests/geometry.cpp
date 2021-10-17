@@ -318,10 +318,16 @@ TEST(Normal3f, OperateTest) {
     EXPECT_TRUE(compare_float(n1.Length(), std::sqrt(Float(n1.x * n1.x + n1.y * n1.y + n1.z * n1.z))));
 }
 
-TEST(Bound2f, OperatorTest) {
-    Bound2f b1 = Bound2f(Point2f(0, 0), Point2f(1, 1));
-    const Point2f pMin = b1[0];
-    LOG(INFO) << b1;
-    //pMin.x = 0.5;
+TEST(Bounds2f, OperatorTest) {
+    Bounds3f b = Bounds3f(Point3f(0, 0, 0), Point3f(1, 1, 1));
+    //LOG(INFO) << b1;
+
+
+    Point3f p(0, 0, 0);
+    Vector3f v(1, 2, 3);
+    Ray r(p, v);
+    Float t0, t1;
+    b.IntersectP(r, t0, t1);
+    r(3);
 }
 

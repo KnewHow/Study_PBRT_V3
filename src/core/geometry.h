@@ -574,22 +574,22 @@ inline std::ostream &operator<<(std::ostream &os, const Normal3<Float> &n) {
 typedef Normal3<Float> Normal3f;
 
 template <typename T>
-class Bound2 {
+class Bounds2 {
 public:
-    Bound2() {
+    Bounds2() {
         T minV = std::numeric_limits<T>::lowest();
         T maxV = std::numeric_limits<T>::max();
         pMin = Point2<T>(maxV, maxV);
         pMax = Point2<T>(minV, minV);
     }
-    explicit Bound2(const Point2<T> &p): pMin(p), pMax(p){}
-    Bound2(const Point2<T> &p0, const Point2<T> &p1) {
+    explicit Bounds2(const Point2<T> &p): pMin(p), pMax(p){}
+    Bounds2(const Point2<T> &p0, const Point2<T> &p1) {
         pMin = Point2<T>(std::min(p0.x, p1.x), std::min(p0.y, p1.y));
         pMax = Point2<T>(std::max(p0.x, p1.x), std::max(p0.y, p1.y));
     }
     template <typename U>
-    explicit operator Bound2<U>() const {
-        return Bound2<U>((Point2<U>)pMin, (Point2<U>)pMax);
+    explicit operator Bounds2<U>() const {
+        return Bounds2<U>((Point2<U>)pMin, (Point2<U>)pMax);
     }
     Vector2<T> Diagonal() const { return pMax - pMin; }
     T Area() const {
@@ -609,8 +609,8 @@ public:
         DCHECK(i >= 0 && i <= 1);
         return i == 0 ? pMin : pMax;
     }
-    bool operator==(const Bound2<T> &b) const { return pMin == b.pMin && pMax == b.pMax; }
-    bool operator!=(const Bound2<T> &b) const { return pMin != b.pMin || pMax != b.pMax; }
+    bool operator==(const Bounds2<T> &b) const { return pMin == b.pMin && pMax == b.pMax; }
+    bool operator!=(const Bounds2<T> &b) const { return pMin != b.pMin || pMax != b.pMax; }
     Point2<T> Lerp(const Point2f &p) const {
         return Point2<T>(pbrt::Lerp(p.x, pMin.x, pMax.x), 
                          pbrt::Lerp(p.y, pMin.y, pMax.y));
@@ -621,11 +621,11 @@ public:
         if(pMax.y > pMin.y) r.y /= (pMax.y - pMin.y);
         return r;
     }
-    void BoundingSphere(Point2<T> &o, Float &r) const {
-        o = 0.5 * (pMin + pMax);
-        return Inside(o, *this) ? Distance(pMin, pMax) : 0;
+    void BoundingSphere(Point2<T> &center, Float &radius) const {
+        center = (pMin + pMax) / 2 ;
+        radius = Inside(center, *this) ? Distance(center, pMax) : 0;
     }
-    friend inline std::ostream &operator<<(std::ostream& os, const Bound2<T> &b) {
+    friend inline std::ostream &operator<<(std::ostream& os, const Bounds2<T> &b) {
         os << "[" << b.pMin << "-" << b.pMax << "]";
         return os;
     }
@@ -633,13 +633,100 @@ public:
 };
 
 template <typename T>
-class Bound3 {
+class Bounds3 {
 public:
-   Point3<T> pMin, pMax;
+    Bounds3(){
+        T min = std::numeric_limits<T>::lowest();
+        T max = std::numeric_limits<T>::max();
+        pMin = Point3<T>(max, max, max);
+        pMax = Point3<T>(min, min, min);
+    }
+    Bounds3(const Point3<T> &p0, const Point3<T> &p1) {
+        pMin = Point3<T>(std::min(p0.x, p1.x), std::min(p0.y, p1.y), std::min(p0.z, p1.z));
+        pMax = Point3<T>(std::max(p0.x, p1.x), std::max(p0.y, p1.y), std::max(p0.z, p1.z));
+    }
+    explicit Bounds3(const Point3<T> &p): pMin(p), pMax(p){}
+    template <typename U>
+    explicit operator Bounds3<U>() const {
+        return Bounds3<U>((Point3<U>)pMin, (Point3<U>)pMax);
+    }
+    Point3<T> Corner(int corner) const {
+        DCHECK(corner >= 0 && corner < 8);
+        return Point3<T>((*this)[(corner & 1)].x,
+                         (*this)[(corner & 2) ? 1 : 0].y,
+                         (*this)[(corner & 4) ? 1 : 0].z);
+    }
+    Vector3<T> Diagonal() const  { return pMax - pMin; }
+    T SurfaceArea() const {
+        Vector3<T> diag = Diagonal();
+        return 2 * (diag.x * diag.y + diag.x * diag.z + diag.y * diag.z);
+    }
+    T Volume() const {
+        Vector3<T> diag = Diagonal();
+        return diag.x * diag.y * diag.z;
+    }
+    int MaximumExtent() const {
+        Vector3<T> diag = Diagonal();
+        if(diag.x > diag.y && diag.x > diag.z) 
+            return 0;
+        else if(diag.y > diag.z) 
+            return 1;
+        else 
+            return 2;
+    }
+    const Point3<T> &operator[](int i) const {
+        DCHECK(i >= 0 && i <= 1);
+        return i == 0 ? pMin : pMax; 
+    }
+    Point3<T> &operator[](int i) {
+        DCHECK(i >= 0 && i <= 1);
+        return i == 0 ? pMin : pMax; 
+    }
+    bool operator==(const Bounds3<T> &b) const { return pMin == b.pMin && pMax == b.pMax; }
+    bool operator!=(const Bounds3<T> &b) const { return pMin != b.pMin || pMax != b.pMax; }
+    Point3<T> Lerp(const Point3<Float> &t) const {
+        return Point3<T>(pbrt::Lerp(t.x, pMin.x, pMax.y),
+                         pbrt::Lerp(t.y, pMin.y, pMax.y),
+                         pbrt::Lerp(t.z, pMin.z, pMax.z));
+    }
+    Vector3<T> Offset(const Point3<T> &p) const {
+        Vector3<T> r = p - pMin;
+        if(pMax.x > pMin.x) r.x /= pMax.x - pMin.x;
+        if(pMax.y > pMin.y) r.y /= pMax.y - pMin.y;
+        if(pMax.z > pMin.z) r.z /= pMax.z - pMin.z;
+    } 
+    void BoundingSphere(Point3<T> &center, Float &radius) const {
+        center = (pMin + pMax) / 2;
+        radius = Inside(center, *this) ? Distance(*center, pMax) : 0;
+    }
+    inline bool IntersectP(const Ray &ray, Float &hitt0, Float &hitt1) const;
+    inline bool IntersectP(const Ray &ray, const Vector3f &invDir, const int dirIsNeg[3]) const;
+    friend std::ostream &operator<<(std::ostream &os, const Bounds3<T> &b) {
+        os << "[" << b.pMin << "-" << b.pMax << "]";
+        return os;
+    }
+    Point3<T> pMin, pMax;
 };
 
-typedef Bound2<int> Bound2i;
-typedef Bound2<Float> Bound2f;
+typedef Bounds2<int> Bounds2i;
+typedef Bounds2<Float> Bounds2f;
+typedef Bounds3<int> Bounds3i;
+typedef Bounds3<Float> Bounds3f;
+
+class Ray {
+public:
+    Ray(): tMax(Infinity){}
+    Ray(const Point3f &o, const Vector3f& d, Float tMax = Infinity):o(o), d(d), tMax(tMax){}
+    Point3f operator()(Float t) const { return o + d * t; }
+    friend std::ostream &operator<<(std::ostream &os, const Ray &ray) {
+        os << "Ray: [o=" << ray.o << ", d=" << ray.d << ", tMax=" << ray.tMax << "]";
+        return os;
+    }
+    bool HasNaNs() const { return o.HasNaNs() || d.HasNaNs() || isNaN(tMax); }
+    Point3f o; // the origin of the ray
+    Vector3f d; // the direction of the ray
+    mutable Float tMax;// a varible to tag the maximum distance the ray can run along with the d
+};
 
 template <typename T>
 Vector2<T>::Vector2(const Point2<T> &p): x(p.x), y(p.y) { DCHECK(!HasNaNs()); }
@@ -648,13 +735,13 @@ template <typename T>
 Vector2<T>::Vector2(const Point3<T> &p): x(p.x), y(p.y) { DCHECK(!HasNaNs()); }
 
 template <typename T>
-bool Inside(const Point2<T> &p, const Bound2<T> &b) {
+bool Inside(const Point2<T> &p, const Bounds2<T> &b) {
     return p.x >= b.pMin.x && p.y >= b.pMin.y && 
            p.x <= b.pMax.x && p.y <= b.pMax.y;
 }
 
 template <typename T> 
-bool Inside(const Point3<T> &p, const Bound3<T> &b) {
+bool Inside(const Point3<T> &p, const Bounds3<T> &b) {
     return p.x >= b.pMin.x && p.y >= b.pMin.y && p.z >= b.pMin.z &&
            p.x <= b.pMax.x && p.y <= b.pMax.y && p.z <= b.pMax.z;
 }
@@ -668,6 +755,58 @@ template <typename T>
 inline Float Distance(const Point3<T> &p0, const Point3<T> &p1) {
     return (p0 - p1).Length();
 }
+
+template <typename T>
+inline bool Bounds3<T>::IntersectP(const Ray &ray, Float &hitt0, Float &hitt1) const {
+    Float t0 = 0, t1 = ray.tMax;
+    for (int i = 0; i < 3; ++i) {
+        // Update interval for _i_th bounding box slab
+        Float invRayDir = 1 / ray.d[i];
+        Float tNear = (pMin[i] - ray.o[i]) * invRayDir;
+        Float tFar = (pMax[i] - ray.o[i]) * invRayDir;
+
+        // Update parametric interval from slab intersection $t$ values
+        if (tNear > tFar) std::swap(tNear, tFar);
+
+        // Update _tFar_ to ensure robust ray--bounds intersection
+        tFar *= 1 + 2 * pbrt::gamma(3);
+        t0 = tNear > t0 ? tNear : t0; // choose latest enter and first go out
+        t1 = tFar < t1 ? tFar : t1;
+        if (t0 > t1) return false;
+    }
+    hitt0 = t0;
+    hitt1 = t1;
+    return true;
+}
+
+template <typename T>
+inline bool Bounds3<T>::IntersectP(const Ray &ray, const Vector3f &invDir, const int dirIsNeg[3]) const {
+    const Bounds3f &bounds = *this;
+    // Check for ray intersection against $x$ and $y$ slabs
+    Float tMin = (bounds[dirIsNeg[0]].x - ray.o.x) * invDir.x;
+    Float tMax = (bounds[1 - dirIsNeg[0]].x - ray.o.x) * invDir.x;
+    Float tyMin = (bounds[dirIsNeg[1]].y - ray.o.y) * invDir.y;
+    Float tyMax = (bounds[1 - dirIsNeg[1]].y - ray.o.y) * invDir.y;
+
+    // Update _tMax_ and _tyMax_ to ensure robust bounds intersection
+    tMax *= 1 + 2 * gamma(3);
+    tyMax *= 1 + 2 * gamma(3);
+    if (tMin > tyMax || tyMin > tMax) return false;
+    if (tyMin > tMin) tMin = tyMin;
+    if (tyMax < tMax) tMax = tyMax;
+
+    // Check for ray intersection against $z$ slab
+    Float tzMin = (bounds[dirIsNeg[2]].z - ray.o.z) * invDir.z;
+    Float tzMax = (bounds[1 - dirIsNeg[2]].z - ray.o.z) * invDir.z;
+
+    // Update _tzMax_ to ensure robust bounds intersection
+    tzMax *= 1 + 2 * gamma(3);
+    if (tMin > tzMax || tzMin > tMax) return false;
+    if (tzMin > tMin) tMin = tzMin;
+    if (tzMax < tMax) tMax = tzMax;
+    return (tMin < ray.tMax) && (tMax > 0);
+}
+
 
 } // namespace pbrt
 
