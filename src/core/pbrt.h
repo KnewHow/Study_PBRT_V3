@@ -62,6 +62,7 @@ class Bounds2;
 template <typename T>
 class Bounds3;
 class Ray;
+class SurfaceInteraction;
 
 
 inline Float Lerp(Float t, Float v0, Float v1) { return (1 - t) * v0 + t * v1; }

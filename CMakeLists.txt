@@ -85,6 +85,7 @@ file(GLOB PBRT_CORE_LIB
 
 
 file(GLOB PBRT_MINOR_LIB
+    src/shape/*
 )
 
 
