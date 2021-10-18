@@ -8,8 +8,6 @@
 
 using namespace pbrt;
 
-Float Epsilon = 0.0001f;
-
 inline int get_random_int() {
     std::random_device dev;
     std::mt19937 rng(dev());
@@ -33,7 +31,7 @@ inline int get_random_int(int begin, int end) {
 }
 
 inline bool compare_float(const Float &p1, const Float &v2) {
-    return std::abs(p1 - v2) < Epsilon;
+    return std::abs(p1 - v2) < ShadowEpsilon;
 }
 
 inline bool compare_vector_float(const Vector2f &p1, const Vector2f &v2) {
@@ -319,19 +317,10 @@ TEST(Normal3f, OperateTest) {
 }
 
 TEST(Bounds2f, OperatorTest) {
-    Bounds3f b = Bounds3f(Point3f(0, 0, 0), Point3f(1, 1, 1));
-
-    Bounds2i b1 = Bounds2i(Point2i(0, 0), Point2i(2,2));
-    LOG(INFO) << b1;
-    LOG(INFO) << "iterate bounds2i";
-    for(Point2i p: b1) {
-        LOG(INFO) << p;
-    }
-    Point3f p(0, 0, 0);
-    Vector3f v(1, 2, 3);
-    Ray r(p, v);
-    Float t0, t1;
-    b.IntersectP(r, t0, t1);
-    r(3);
+    Bounds3f b1 = Bounds3f(Point3f(0, 0, 0), Point3f(1, 1, 1));
+    Bounds3f b2 = Bounds3f(Point3f(0, 0, 0), Point3f(2, 2, 2));
+    Point3f p(1,1,1);
+    auto r = DistanceSquared(p, b2);
+    LOG(INFO) << "distance square is: " << r;
 }
 
