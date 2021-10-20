@@ -776,7 +776,7 @@ public:
     }
     bool HasNaNs() const { return o.HasNaNs() || d.HasNaNs() || isNaN(tMax); }
     Point3f o; // the origin of the ray
-    Vector3f d; // the direction of the ray
+    Vector3f d; // the direction of the ray, it must be normalize
     mutable Float tMax;// a varible to tag the maximum distance the ray can run along with the d
 };
 

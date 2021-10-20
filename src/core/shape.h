@@ -8,6 +8,7 @@
 
 #include "pbrt.h"
 #include "geometry.h"
+#include "interaction.h"
 
 namespace pbrt {
 
@@ -20,16 +21,21 @@ public:
     /**
      * Try do a ray intersect with a shape.
      * @param ray the ray
+     * @param tHit the times the ray transmit. This value will be record in the [ray.tMax] to find the minimum hit point.
      * @param isect if the ray intersect with the shape, return some surface information about the interaction point.
      * @return if they are intersection, return true, otherwise return false
     */
-    virtual bool Intersection(const Ray &ray, SurfaceInteraction &isect) const = 0; 
+    virtual bool Intersection(const Ray &ray, Float &tHit, SurfaceInteraction &isect) const = 0; 
     
     /**
      * Try do a ray intersect with a shape, just care if they can intersect, don't care others.
      * @return if they are, return ture, otherwise return false
     */
-    virtual bool IntersectionP(const Ray &ray) const = 0;
+    virtual bool IntersectionP(const Ray &ray) const {
+        SurfaceInteraction sect;
+        Float tHit;
+        return Intersection(ray, tHit, sect);
+    }
 
     /**
      * get surface of the shape
@@ -41,7 +47,7 @@ public:
      * Sample the shape
      * @param pdf the param will be returned represent Probability density function
     */
-    virtual void Sample(Float& pdf) const = 0;
+    virtual Interaction Sample(Float &pdf) const = 0;
 
     /**
      * Get the world Bound of the shape.

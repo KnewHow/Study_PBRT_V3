@@ -9,9 +9,12 @@
 
 
 #include <iostream>
+#include <vector>
+#include <memory>
 #include <cmath>
 #include <limits>
 #include <algorithm>
+#include <random>
 #include <glog/logging.h>
 
 #ifdef PBRT_FLOAT_AS_DOUBLE
@@ -62,7 +65,18 @@ class Bounds2;
 template <typename T>
 class Bounds3;
 class Ray;
+class Interaction;
 class SurfaceInteraction;
+class Primitive;
+class Shape;
+
+
+inline float get_random_Float() {
+    std::random_device dev;
+    std::mt19937 rng(dev());
+    std::uniform_real_distribution<Float> dist(0.0, 1.0);
+    return dist(rng);
+}
 
 
 inline Float Lerp(Float t, Float v0, Float v1) { return (1 - t) * v0 + t * v1; }

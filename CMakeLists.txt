@@ -94,6 +94,7 @@ INCLUDE_DIRECTORIES ( src )
 
 # Visual Studio source folders
 SOURCE_GROUP (core REGULAR_EXPRESSION src/core/.*)
+SOURCE_GROUP (shape REGULAR_EXPRESSION src/shape/.*)
 
 ADD_LIBRARY (pbrt STATIC
   ${PBRT_CORE_LIB}
