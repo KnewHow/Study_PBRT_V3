@@ -3,13 +3,15 @@
 #include "shape.h"
 #include "shape/triangle.h"
 #include "primitive.h"
+#include "OBJ_Loader.h"
 
 using namespace pbrt;
 
 TEST(GeometricPrimitive, InitPrimitive) {
-    objl_loader.LoadFile("../../resource/cube/cube.obj");
-    //loader.LoadFile("../../resource/connelbox/connelbox.obj");
-    //std::vector<objl::Mesh> meshs = objl_loader.LoadedMeshes;
+    objl::Loader loader;
+    loader.LoadFile("../../resource/cube/cube.obj");
+    // loader.LoadFile("../../resource/connelbox/connelbox.obj");
+    // std::vector<objl::Mesh> meshs = loader.LoadedMeshes;
     // std::vector<Primitive> ps
     // EXPECT_TRUE(true);
 }

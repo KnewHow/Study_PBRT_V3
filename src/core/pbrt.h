@@ -6,8 +6,6 @@
 #ifndef PBRT_CORE_PBRT_H
 #define PBRT_CORE_PBRT_H
 
-
-
 #include <iostream>
 #include <vector>
 #include <memory>
@@ -16,9 +14,6 @@
 #include <algorithm>
 #include <random>
 #include <glog/logging.h>
-#include "OBJ_Loader.h"
-
-objl::Loader objl_loader;
 
 #ifdef PBRT_FLOAT_AS_DOUBLE
     typedef double Float;
