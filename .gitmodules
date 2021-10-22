@@ -4,6 +4,3 @@
 [submodule "ext/sanitizers-cmake"]
 	path = ext/sanitizers-cmake
 	url = git@github.com:arsenm/sanitizers-cmake.git
-[submodule "ext/OBJ-Loader"]
-	path = ext/OBJ-Loader
-	url = git@github.com:Bly7/OBJ-Loader.git
