@@ -88,9 +88,12 @@ file(GLOB PBRT_MINOR_LIB
     src/shape/*
 )
 
+set(OBJ_FILE_LOADER ext/OBJ-Loader/Source/OBJ_Loader.h)
+
 
 INCLUDE_DIRECTORIES ( src/core )
 INCLUDE_DIRECTORIES ( src )
+include_directories ( ext/OBJ-Loader/Source)
 
 # Visual Studio source folders
 SOURCE_GROUP (core REGULAR_EXPRESSION src/core/.*)
@@ -99,6 +102,7 @@ SOURCE_GROUP (shape REGULAR_EXPRESSION src/shape/.*)
 ADD_LIBRARY (pbrt STATIC
   ${PBRT_CORE_LIB}
   ${PBRT_MINOR_LIB}
+  ${OBJ_FILE_LOADER}
 )
 ADD_SANITIZERS ( pbrt )
 

@@ -321,6 +321,6 @@ TEST(Bounds2f, OperatorTest) {
     Bounds3f b2 = Bounds3f(Point3f(0, 0, 0), Point3f(2, 2, 2));
     Point3f p(1,1,1);
     auto r = DistanceSquared(p, b2);
-    LOG(INFO) << "distance square is: " << r;
+    EXPECT_TRUE(compare_float(r, 0));
 }
 
