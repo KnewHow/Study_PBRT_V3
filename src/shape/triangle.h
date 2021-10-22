@@ -33,7 +33,7 @@ public:
     virtual bool IntersectionP(const Ray &ray) const override;
     virtual Float Area() const override;
     virtual Interaction Sample(Float &pdf) const;
-    virtual Bounds3f worldBound() const override;
+    virtual Bounds3f WorldBound() const override;
 private:
     const std::shared_ptr<TriangleMesh> mesh;
     const int *v; // the pointer point the vertice index, you can use v[0] v[1] v[2] to access the index in mesh->p[]

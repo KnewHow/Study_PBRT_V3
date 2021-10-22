@@ -53,7 +53,7 @@ public:
      * Get the world Bound of the shape.
      * @return The world bould of the shape
     */
-    virtual Bounds3f worldBound() const = 0;
+    virtual Bounds3f WorldBound() const = 0;
 };
 
 } // namespace pbrt

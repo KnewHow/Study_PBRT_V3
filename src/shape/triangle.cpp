@@ -24,7 +24,7 @@ bool Triangle::Intersection(const Ray &ray, Float &tHit, SurfaceInteraction &ise
    Vector3f S2 = Cross(S, e1);
    Vector3f v = Vector3f(Dot(S2, e2), Dot(S1, S), Dot(S2, ray.d));
    Vector3f r = 1.0f / Dot(S1, e1) * v;
-   if(r.x > 0 && r.y > 0 && r.z > 0 && (1 - r.y - r.z) > 0) {
+   if(r.x < ray.tMax && r.x > 0 && r.y > 0 && r.z > 0 && (1 - r.y - r.z) > 0) {
       float t = r.x;
       Point3f hitPoint = ray.o + t * ray.d;
       tHit = t;
@@ -47,7 +47,7 @@ bool Triangle::IntersectionP(const Ray &ray) const {
    Vector3f S2 = Cross(S, e1);
    Vector3f v = Vector3f(Dot(S2, e2), Dot(S1, S), Dot(S2, ray.d));
    Vector3f r = 1.0f / Dot(S1, e1) * v;
-   if(r.x > 0 && r.y > 0 && r.z > 0 && (1 - r.y - r.z) > 0) return true;
+   if(r.x < ray.tMax && r.x > 0 && r.y > 0 && r.z > 0 && (1 - r.y - r.z) > 0) return true;
    else return false;
 }
 
@@ -58,7 +58,7 @@ Float Triangle::Area() const {
    return 0.5 * Cross(p2 - p0, p1 - p0).Length();
 }
 
-Bounds3f Triangle::worldBound() const {
+Bounds3f Triangle::WorldBound() const {
    const Point3f &p0 = mesh->p[v[0]];
    const Point3f &p1 = mesh->p[v[1]];
    const Point3f &p2 = mesh->p[v[2]];

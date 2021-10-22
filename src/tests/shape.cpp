@@ -3,15 +3,13 @@
 #include "pbrt.h"
 #include "shape.h"
 #include "shape/triangle.h"
-#include "OBJ_Loader.h"
 
 using namespace pbrt;
 
 TEST(Triangle, BaseTest) {
-    objl::Loader loader;
-    loader.LoadFile("../../resource/cube/cube.obj");
+    objl_loader.LoadFile("../../resource/cube/cube.obj");
     //loader.LoadFile("../../resource/connelbox/connelbox.obj");
-    std::vector<objl::Mesh> meshs = loader.LoadedMeshes;
+    std::vector<objl::Mesh> meshs = objl_loader.LoadedMeshes;
     std::vector<Triangle> ts;
     for(const auto &mesh: meshs) {
         std::vector<int> idxs;

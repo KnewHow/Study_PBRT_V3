@@ -16,6 +16,9 @@
 #include <algorithm>
 #include <random>
 #include <glog/logging.h>
+#include "OBJ_Loader.h"
+
+objl::Loader objl_loader;
 
 #ifdef PBRT_FLOAT_AS_DOUBLE
     typedef double Float;
@@ -69,6 +72,7 @@ class Interaction;
 class SurfaceInteraction;
 class Primitive;
 class Shape;
+class Material;
 
 
 inline float get_random_Float() {
