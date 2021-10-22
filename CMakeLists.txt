@@ -88,12 +88,12 @@ file(GLOB PBRT_MINOR_LIB
     src/shape/*
 )
 
-set(OBJ_FILE_LOADER ext/OBJ-Loader/Source/OBJ_Loader.h)
+set(OBJ_FILE_LOADER ext/OBJ_Loader/OBJ_Loader.h)
 
 
 INCLUDE_DIRECTORIES ( src/core )
 INCLUDE_DIRECTORIES ( src )
-include_directories ( ext/OBJ-Loader/Source)
+include_directories ( ext/OBJ_Loader/)
 
 # Visual Studio source folders
 SOURCE_GROUP (core REGULAR_EXPRESSION src/core/.*)
