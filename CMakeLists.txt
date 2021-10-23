@@ -79,6 +79,39 @@ ELSE ()
   ADD_DEFINITIONS ( -D PBRT_CONSTEXPR=const )
 ENDIF ()
 
+# Aligned memory allocation
+
+CHECK_CXX_SOURCE_COMPILES ( "
+#include <malloc.h>
+int main() { void * ptr = _aligned_malloc(1024, 32); }
+" HAVE__ALIGNED_MALLOC )
+
+CHECK_CXX_SOURCE_COMPILES ( "
+#include <stdlib.h>
+int main() {
+  void *ptr;
+  posix_memalign(&ptr, 32, 1024);
+} " HAVE_POSIX_MEMALIGN )
+
+CHECK_CXX_SOURCE_COMPILES ( "
+#include <malloc.h>
+int main() {
+    void *ptr = memalign(32, 1024);
+} " HAVE_MEMALIGN )
+
+IF ( HAVE__ALIGNED_MALLOC )
+  ADD_DEFINITIONS ( -D PBRT_HAVE__ALIGNED_MALLOC )
+ELSEIF ( HAVE_POSIX_MEMALIGN )
+  ADD_DEFINITIONS ( -D PBRT_HAVE_POSIX_MEMALIGN )
+ELSEIF ( HAVE_MEMALIGN )
+  ADD_DEFINITIONS ( -D PBRTHAVE_MEMALIGN )
+ELSE ()
+  MESSAGE ( SEND_ERROR "Unable to find a way to allocate aligned memory" )
+ENDIF ()
+
+
+####################### pbrt file ############################
+
 file(GLOB PBRT_CORE_LIB
     src/core/*
 )

@@ -15,6 +15,13 @@
 #include <random>
 #include <glog/logging.h>
 
+#ifdef PBRT_HAVE_MALLOC_H
+#include <malloc.h>  // for _alloca, memalign
+#endif
+#ifdef PBRT_HAVE_ALLOCA_H
+#include <alloca.h>
+#endif
+
 #ifdef PBRT_FLOAT_AS_DOUBLE
     typedef double Float;
 #else
@@ -34,6 +41,10 @@ static PBRT_CONSTEXPR Float Infinity = std::numeric_limits<Float>::infinity();
 #else
 static PBRT_CONSTEXPR Float MachineEpsilon =
     std::numeric_limits<Float>::epsilon() * 0.5;
+#endif
+
+#ifndef PBRT_L1_CACHE_LINE_SIZE
+  #define PBRT_L1_CACHE_LINE_SIZE 64
 #endif
 
 static PBRT_CONSTEXPR Float ShadowEpsilon = 0.0001f;
