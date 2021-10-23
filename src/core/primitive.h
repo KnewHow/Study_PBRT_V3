@@ -57,6 +57,23 @@ private:
     std::shared_ptr<Material> material;
 };
 
+/**
+ * A aggregate class for accelerator. An accelerator can inherit this basic class
+ * then we can see it as a primivite in the scene. Why call this `Aggregate` becase it
+ * contains many primitives as an accelerator.
+*/
+class Aggregate: public Primitive {
+
+    /**
+     * An aggregate is a shell for primitives, you should't get the material from it directly.
+     * You should get material from actual primitive
+    */
+    virtual std::shared_ptr<Material> GetMaterial() const {
+        LOG(FATAL) << "You should't get material from a aggregate";
+        return nullptr;
+    } 
+};
+
 } // namespace pbrt
 
 #endif // PBRT_SRC_CORE_PRIMITIVE_H_

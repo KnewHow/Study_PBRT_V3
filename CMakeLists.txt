@@ -86,6 +86,7 @@ file(GLOB PBRT_CORE_LIB
 
 file(GLOB PBRT_MINOR_LIB
     src/shape/*
+    src/accelerators/*
 )
 
 set(OBJ_FILE_LOADER ext/OBJ_Loader/OBJ_Loader.h)
