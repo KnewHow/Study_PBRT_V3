@@ -9,6 +9,7 @@
 #include "pbrt.h"
 #include "geometry.h"
 #include "interaction.h"
+#include "shape.h"
 
 namespace pbrt {
 

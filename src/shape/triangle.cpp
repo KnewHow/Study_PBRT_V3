@@ -30,6 +30,7 @@ bool Triangle::Intersection(const Ray &ray, Float &tHit, SurfaceInteraction &ise
       tHit = t;
       Normal3f n = Normal3f(Normalize(Cross(e1, e2)));
       isect = SurfaceInteraction(this, hitPoint, n);
+      isect.shape = this;
       return true;
    }
    return false;

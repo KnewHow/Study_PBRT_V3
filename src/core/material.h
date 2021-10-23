@@ -31,7 +31,7 @@ typedef RGBA<int> RGBAi;
 class Material{
 public:
     Material(){};
-    Material(const RGBA &kd, const RGBA &ks): kd(kd), ks(ks){}
+    Material(const RGBAf &kd, const RGBAf &ks): kd(kd), ks(ks){}
     RGBAf kd;
     RGBAf ks;
 };

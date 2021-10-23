@@ -29,8 +29,8 @@ struct Interaction {
 struct SurfaceInteraction: public Interaction {
     SurfaceInteraction(){}
     SurfaceInteraction(const Shape *shape, const Point3f &p, const Normal3f &n):Interaction(p, n), shape(shape){}
-    const Shape *shape;
-    const Primitive *primitive; // it will record the material the suferface is
+    const Shape *shape = nullptr;
+    const Primitive *primitive = nullptr; // it will record the material the suferface is
 };
 
 
