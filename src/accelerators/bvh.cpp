@@ -14,7 +14,7 @@ struct LinearBVHNode {
         int primitiveOffset; // Only for leaf node, it represents the staring index in the `primitives`
         int secondChildOffset; // Only for interior node, it represents the second node index in the `primitives`. becase we will use DFS(deep first search) travelsal for the BVH tree, the first child will be recorded with current interior node index + 1, it is knew for us. So we only need to record the second child index in interior node
     };
-    uint16_t nPrimitives; // Only for leaf node, it represents how many primitives in the leaf node. If we have primitiveOffset and nPrimitives, we can travelsal all primitives in the node.
+    uint16_t nPrimitives; // Only for leaf node, it represents how many primitives in the leaf node. If we have primitiveOffset and nPrimitives, we can travelsal all primitives in the node. What's more we use this to distinguish if the node is leaf or interior. If this nPrimitives equal zero, we will see it as leaf node, otherwise interior node.
     uint8_t axis; // Only for interior, it represents which axies the node had been splited.
     uint8_t pad[1]; // make sure 32 bytes for whole struct, it will more effective for CPU
 };
@@ -34,6 +34,7 @@ struct BVHBuildNode {
         children[0] = c0;
         children[1] = c1;
         bound = Union(c0->bound, c1->bound);
+        nPrimitives = 0;
     }
     Bounds3f bound;
     std::shared_ptr<BVHBuildNode> children[2]; // Only for interior node
@@ -151,7 +152,7 @@ std::shared_ptr<BVHBuildNode> BVHAccel::RecursiveBuild(std::vector<BVHPrimitiveI
             }
 
             BucketInfo buckets[SHA_N_BUCKETS];
-            for(int i = begin; i < end; ++i) {
+            for(int i = begin; i < end; ++i) { // partition primitves into buckets by each in centroid bound ratio
                 int b = centroidBounds.Offset(primitiveInfos[i].centroid)[dim] * SHA_N_BUCKETS;
                 if(b == SHA_N_BUCKETS) --b;
                 DCHECK_GE(b, 0);
@@ -160,7 +161,7 @@ std::shared_ptr<BVHBuildNode> BVHAccel::RecursiveBuild(std::vector<BVHPrimitiveI
                 buckets[b].bound = Union(buckets[b].bound, primitiveInfos[i].bound);
             }
 
-            Float cost[SHA_N_BUCKETS-1]; 
+            Float cost[SHA_N_BUCKETS-1]; // calculate each partitions cost
             for(int i = 0; i < SHA_N_BUCKETS - 1; ++i) {
                 int c0 = 0, c1 = 0;
                 Bounds3f b0, b1;
@@ -210,6 +211,105 @@ std::shared_ptr<BVHBuildNode> BVHAccel::RecursiveBuild(std::vector<BVHPrimitiveI
                        RecursiveBuild(primitiveInfos, begin, mid, totalNodes, orderedPrimitives),
                        RecursiveBuild(primitiveInfos, mid, end, totalNodes, orderedPrimitives));
     return node;
+}
+
+int BVHAccel::FlattenBVHTree(const std::shared_ptr<BVHBuildNode> node, int &offset) {
+    LinearBVHNode *linearNode = nodes + offset;
+    int myOffset = offset++;
+    linearNode->bound = node->bound;
+    if(node->nPrimitives == 0) { // Interior node
+        linearNode->axis = node->splitAxis;
+        linearNode->nPrimitives = 0;
+        FlattenBVHTree(node->children[0], offset);
+        linearNode->secondChildOffset = FlattenBVHTree(node->children[1], offset);
+    } else {
+        linearNode->primitiveOffset = node->primitiveOffset;
+        linearNode->nPrimitives = node->nPrimitives;
+    }
+    return myOffset;
+}
+
+bool BVHAccel::Intersect(const Ray &ray, SurfaceInteraction &isect) const {
+    if(nodes == nullptr) return false;
+
+    // because we need to traversal a linear tree, so we need a assistant stack
+    int currentNodeIndex = 0; // Index of current access node in nodes
+    int stack[64]; // use a array to represent stack
+    int stackTopIndex = 0; // Index of top element in stack. Actually (stackTopIndex - 1) represent top element in the stack
+    Vector3f invD(1 / ray.d.x, 1 / ray.d.y, 1 / ray.d.z);
+    int dirIsNeg[3] = {invD.x < 0, invD.y < 0, invD.z < 0};
+    bool isHit = false;
+    while(true) {
+        LinearBVHNode *node = node + currentNodeIndex;
+        if(node->bound.IntersectP(ray, invD, dirIsNeg)) {
+            if(node->nPrimitives > 0) { // meet leaf node, traversal all primitives find the last hit point
+                for(int i = 0; i < node->nPrimitives; ++i) {
+                    if(primitives[node->primitiveOffset + i]->Intersect(ray, isect)) {
+                        isHit = true;
+                    }
+                }
+                // if there are other subtree, go on traversal, otherwise break loop
+                if(stackTopIndex == 0) break;
+                else currentNodeIndex = stack[--stackTopIndex];
+            } else { // meet Iterior node, traverl one of its two childrens, and another push the stack
+                if(dirIsNeg[node->axis]) { // if the direction in splited axis is negative, we intersect with the right subtree first, otherwise with left subtree
+                    currentNodeIndex = node->secondChildOffset;
+                    stack[stackTopIndex++] = currentNodeIndex + 1; // record left subtree index
+                } else {
+                    currentNodeIndex = currentNodeIndex + 1;
+                    stack[stackTopIndex++] = node->secondChildOffset; 
+                }
+            }
+        } else {
+            // if there are other subtree, go on traversal, otherwise break loop
+            if(stackTopIndex == 0) break;
+            else currentNodeIndex = stack[--stackTopIndex];
+        }
+    }
+    return isHit;
+}
+
+bool BVHAccel::IntersectP(const Ray &ray) const {
+    if(nodes == nullptr) return false;
+    
+    // because we need to traversal a linear tree, so we need a assistant stack
+    int currentNodeIndex = 0; // Index of current access node in nodes
+    int stack[64]; // use a array to represent stack
+    int stackTopIndex = 0; // Index of top element in stack. Actually (stackTopIndex - 1) represent top element in the stack
+    Vector3f invD(1 / ray.d.x, 1 / ray.d.y, 1 / ray.d.z);
+    int dirIsNeg[3] = {invD.x < 0, invD.y < 0, invD.z < 0};
+    while(true) {
+        LinearBVHNode *node = node + currentNodeIndex;
+        if(node->bound.IntersectP(ray, invD, dirIsNeg)) {
+            if(node->nPrimitives > 0) { // meet leaf node, traversal all primitives find the last hit point
+                for(int i = 0; i < node->nPrimitives; ++i) {
+                    if(primitives[node->primitiveOffset + i]->IntersectP(ray)) {
+                        return true;
+                    }
+                }
+                // if there are other subtree, go on traversal, otherwise break loop
+                if(stackTopIndex == 0) break;
+                else currentNodeIndex = stack[--stackTopIndex];
+            } else { // meet Iterior node, traverl one of its two childrens, and another push the stack
+                if(dirIsNeg[node->axis]) { // if the direction in splited axis is negative, we intersect with the right subtree first, otherwise with left subtree
+                    currentNodeIndex = node->secondChildOffset;
+                    stack[stackTopIndex++] = currentNodeIndex + 1; // record left subtree index
+                } else {
+                    currentNodeIndex = currentNodeIndex + 1;
+                    stack[stackTopIndex++] = node->secondChildOffset; 
+                }
+            }
+        } else {
+            // if there are other subtree, go on traversal, otherwise break loop
+            if(stackTopIndex == 0) break;
+            else currentNodeIndex = stack[--stackTopIndex];
+        }
+    }
+    return false;
+}
+
+Bounds3f BVHAccel::WorldBound() const {
+    return nodes == nullptr ? Bounds3f() : nodes->bound;
 }
 
 } // namespace pbrt
