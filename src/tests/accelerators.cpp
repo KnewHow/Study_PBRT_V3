@@ -9,11 +9,14 @@
 
 using namespace pbrt;
 
+struct Person {
+    int counter = 0;
+};
+
 TEST(BVHAccel, BaseTest) {
-    std::vector<int> a;
-    a.reserve(3);
-    std::vector<int> b(3);
-    LOG(INFO) << "a size is: " << a.size() << ", b size is: " << b.size();
+    Person p;
+    ++p.counter;
+    LOG(INFO) << "counter is： " << p.counter;
     //BVHAccel bvh;
     EXPECT_TRUE(true);
 }

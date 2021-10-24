@@ -42,6 +42,9 @@ private:
     LinearBVHNode *nodes; // a head point for a LinearBVHNode array, we transform a tree node into a linear array, it will get good performance in traversal tree
     const int maxPrimitivesInNode; // the maximax capacity of primitives in each leaf node
     SplitMethod method; // Which split method, it will be used in split algorithms
+
+    static PBRT_CONSTEXPR int SHA_THRESHOLD = 2;
+    static PBRT_CONSTEXPR int SHA_N_BUCKETS = 12;
 };
 
 } // namespace pbrt

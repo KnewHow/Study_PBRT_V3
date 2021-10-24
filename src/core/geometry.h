@@ -699,6 +699,7 @@ public:
         if(pMax.x > pMin.x) r.x /= pMax.x - pMin.x;
         if(pMax.y > pMin.y) r.y /= pMax.y - pMin.y;
         if(pMax.z > pMin.z) r.z /= pMax.z - pMin.z;
+        return r;
     } 
     void BoundingSphere(Point3<T> &center, Float &radius) const {
         center = (pMin + pMax) / 2;
