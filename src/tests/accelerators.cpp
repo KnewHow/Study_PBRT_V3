@@ -6,6 +6,7 @@
 #include "OBJ_Loader.h"
 #include "material.h"
 #include "accelerators/bvh.h"
+#include "clock.h"
 
 using namespace pbrt;
 
@@ -66,7 +67,94 @@ TEST(BVHAccel, BaseTest) {
         isHit = bvh.IntersectP(ray);
         EXPECT_FALSE(isHit);
     }
-
-
-   
 }
+
+
+
+void loadHugeModel(std::vector<std::shared_ptr<Primitive>> &ps, std::chrono::milliseconds &begin, std::chrono::milliseconds &end) {
+    begin = getCurrentMilliseconds();
+    std::string HUGE_MODEL_PATH = "../../resource/hutao/hutao.obj";
+    objl::Loader loader;
+    loader.LoadFile(HUGE_MODEL_PATH);
+    if(loader.LoadedMeshes.empty()) {
+        LOG(WARNING) << "not load mesh from this path: " << HUGE_MODEL_PATH;
+        return;
+    }
+    std::vector<objl::Mesh> meshs = loader.LoadedMeshes;
+    for(const auto &mesh: meshs) {
+        std::shared_ptr<Material> material = std::make_shared<Material>(RGBAf(mesh.MeshMaterial.Kd.X, mesh.MeshMaterial.Kd.Y, mesh.MeshMaterial.Kd.Z, 1.0),
+                                                                        RGBAf(mesh.MeshMaterial.Ks.X, mesh.MeshMaterial.Ks.Y, mesh.MeshMaterial.Ks.Z, 1.0));
+        std::vector<int> idxs;
+        std::vector<Point3f> p;
+        std::vector<Normal3f> n;
+        p.reserve(mesh.Vertices.size());
+        n.reserve(mesh.Vertices.size());
+        idxs.reserve(mesh.Indices.size());
+        for(const auto &vertex: mesh.Vertices) {
+            p.push_back(Point3f(vertex.Position.X, vertex.Position.Y, vertex.Position.Z));
+            n.push_back(Normal3f(vertex.Normal.X, vertex.Normal.Y, vertex.Normal.Z));
+        }
+        for(const auto idx: mesh.Indices) idxs.push_back(idx);
+        std::shared_ptr<TriangleMesh> m = std::make_shared<TriangleMesh>(idxs.size()/3, p.size(), idxs, p, n);
+        for(int i = 0; i < idxs.size(); i += 3) {
+            std::shared_ptr<Triangle> triangle = std::make_shared<Triangle>(m, i/3);
+            std::shared_ptr<GeometicPrimitive> gp = std::make_shared<GeometicPrimitive>(triangle, material);
+            ps.push_back(gp);
+        }
+    }
+    end = getCurrentMilliseconds();
+}
+
+void test_bvh_insersect(const std::shared_ptr<BVHAccel> bvh, std::chrono::milliseconds &begin, std::chrono::milliseconds &end) {
+    begin = getCurrentMilliseconds();
+    int intersectTimes = 10000;
+    int hitTimes = 0;
+    for(int i = 0; i < intersectTimes; i++) {
+        Ray ray(Point3f(0, 0, 0), Normalize(Vector3f(get_random_Float(), get_random_Float(), get_random_Float())));
+        SurfaceInteraction isect;
+        bool isHit = bvh->Intersect(ray, isect);
+        if(isHit) ++hitTimes;
+    }
+    LOG(INFO) << "test_bvh_insersect result, hit times: " << hitTimes << ", no hit times: " << intersectTimes - hitTimes;
+    end = getCurrentMilliseconds();
+}
+
+std::shared_ptr<BVHAccel> buildBVH(const std::vector<std::shared_ptr<Primitive>> &ps, BVHAccel::SplitMethod method, std::chrono::milliseconds &begin, std::chrono::milliseconds &end) {
+    begin = getCurrentMilliseconds();
+    std::shared_ptr<BVHAccel> bvh = std::make_shared<BVHAccel>(ps, method);
+    end = getCurrentMilliseconds();
+    return bvh;
+}
+
+void printTime(const std::string &prefix, const std::chrono::milliseconds &begin, const std::chrono::milliseconds &end) {
+    LOG(INFO) << prefix << (end - begin).count();
+}
+
+TEST(BVHAccel, ComparePerformance) {
+    std::vector<std::shared_ptr<Primitive>> ps;
+    std::chrono::milliseconds begin, end;
+    loadHugeModel(ps, begin, end);
+    printTime("Load Huge Model took: ", begin, end);
+
+
+    auto bvh_middle = buildBVH(ps, BVHAccel::SplitMethod::Middle, begin, end);
+    printTime("Build BVH with Millde took: ", begin, end);
+
+    auto bvh_equalCounts = buildBVH(ps, BVHAccel::SplitMethod::EqualCounts, begin, end);
+    printTime("Build BVH with EqualCounts took: ", begin, end);
+
+    auto bvh_sah = buildBVH(ps, BVHAccel::SplitMethod::SAH, begin, end);
+    printTime("Build BVH with SAH took: ", begin, end);
+    
+    LOG(INFO) << "-------------------------------------------";
+    
+    test_bvh_insersect(bvh_middle, begin, end);
+    printTime("Test BVH with Millde took: ", begin, end);
+
+    test_bvh_insersect(bvh_equalCounts, begin, end);
+    printTime("Test BVH with EqualCounts took: ", begin, end);
+
+    test_bvh_insersect(bvh_sah, begin, end);
+    printTime("Test BVH with SAH took: ", begin, end);
+    
+} 
