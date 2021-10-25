@@ -38,8 +38,12 @@ TEST(BVHAccel, BaseTest) {
         }
     }
     BVHAccel bvh(ps);
-    Ray ray(Point3f(0, 0, 0), Normalize(Vector3f(get_random_Float(),get_random_Float(),get_random_Float())));
-    SurfaceInteraction isect;
-    bool isHit = bvh.Intersect(ray, isect);
-    EXPECT_TRUE(isHit);
+    for(int i = 0; i < 100; i++) {
+        Ray ray(Point3f(0, 0, 0), Normalize(Vector3f(get_random_Float(),get_random_Float(),get_random_Float())));
+        SurfaceInteraction isect;
+        bool isHit = bvh.Intersect(ray, isect);
+        LOG(INFO) << "is hit: " << std::boolalpha << isHit << ", ray is: " << ray << ", hit point is: " << isect.p << ". hit point normal: " << isect.n;
+        EXPECT_TRUE(isHit);
+    }
+   
 }

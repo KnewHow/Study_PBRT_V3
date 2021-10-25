@@ -17,8 +17,8 @@ namespace pbrt {
 struct Interaction {
     Interaction(){}
     Interaction(const Point3f &p, const Normal3f &n): p(p), n(n){}
-    Point3f p;
-    Normal3f n;
+    Point3f p; // hit point
+    Normal3f n; // the normal of hit point
 };
 
 /**

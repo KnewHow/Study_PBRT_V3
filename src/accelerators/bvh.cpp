@@ -161,7 +161,7 @@ std::shared_ptr<BVHBuildNode> BVHAccel::RecursiveBuild(std::vector<BVHPrimitiveI
                 buckets[b].bound = Union(buckets[b].bound, primitiveInfos[i].bound);
             }
 
-            Float cost[SHA_N_BUCKETS-1]; // calculate each partitions cost
+            Float cost[SHA_N_BUCKETS - 1]; // calculate each partitions cost
             for(int i = 0; i < SHA_N_BUCKETS - 1; ++i) {
                 int c0 = 0, c1 = 0;
                 Bounds3f b0, b1;
@@ -178,7 +178,7 @@ std::shared_ptr<BVHBuildNode> BVHAccel::RecursiveBuild(std::vector<BVHPrimitiveI
 
             int minimumIndex = 0;
             Float minimumCost = cost[0];
-            for(int i = 1; i < SHA_N_BUCKETS; ++i) {
+            for(int i = 1; i < SHA_N_BUCKETS - 1; ++i) {
                 if(cost[i] < minimumCost) {
                     minimumCost = cost[i];
                     minimumIndex = i;
@@ -187,7 +187,7 @@ std::shared_ptr<BVHBuildNode> BVHAccel::RecursiveBuild(std::vector<BVHPrimitiveI
 
             Float leafCost = nPrimitives;
             if(nPrimitives > maxPrimitivesInNode || minimumCost < leafCost) { // if primitive amouts greater than maxPrimitivesInNode or minimumCost less than leafCost(traversal all primitives spend time)
-                BVHPrimitiveInfo *ptrMid = std::partition(&primitiveInfos[begin], &primitiveInfos[end -1] + 1, [&](const BVHPrimitiveInfo &info){
+                BVHPrimitiveInfo *ptrMid = std::partition(&primitiveInfos[begin], &primitiveInfos[end - 1] + 1, [&](const BVHPrimitiveInfo &info){
                     int b = centroidBounds.Offset(info.centroid)[dim] * SHA_N_BUCKETS;
                     if(b == SHA_N_BUCKETS) --b;
                     DCHECK_GE(b, 0);
@@ -195,7 +195,7 @@ std::shared_ptr<BVHBuildNode> BVHAccel::RecursiveBuild(std::vector<BVHPrimitiveI
                     return b <= minimumIndex;
                 });
                 mid = ptrMid - &primitiveInfos[0];
-            } else { // other wise put them together as a leaf node
+            } else { // otherwise put them together as a leaf node
                 int firstOffset = orderedPrimitives.size();
                 for(int i = begin; i < end; ++i) {
                     int index = primitiveInfos[i].index;
@@ -240,7 +240,7 @@ bool BVHAccel::Intersect(const Ray &ray, SurfaceInteraction &isect) const {
     int dirIsNeg[3] = {invD.x < 0, invD.y < 0, invD.z < 0};
     bool isHit = false;
     while(true) {
-        LinearBVHNode *node = node + currentNodeIndex;
+        LinearBVHNode *node = nodes + currentNodeIndex;
         if(node->bound.IntersectP(ray, invD, dirIsNeg)) {
             if(node->nPrimitives > 0) { // meet leaf node, traversal all primitives find the last hit point
                 for(int i = 0; i < node->nPrimitives; ++i) {
@@ -250,7 +250,7 @@ bool BVHAccel::Intersect(const Ray &ray, SurfaceInteraction &isect) const {
                 }
                 // if there are other subtree, go on traversal, otherwise break loop
                 if(stackTopIndex == 0) break;
-                else currentNodeIndex = stack[--stackTopIndex];
+                currentNodeIndex = stack[--stackTopIndex];
             } else { // meet Iterior node, traverl one of its two childrens, and another push the stack
                 if(dirIsNeg[node->axis]) { // if the direction in splited axis is negative, we intersect with the right subtree first, otherwise with left subtree
                     currentNodeIndex = node->secondChildOffset;
@@ -263,7 +263,7 @@ bool BVHAccel::Intersect(const Ray &ray, SurfaceInteraction &isect) const {
         } else {
             // if there are other subtree, go on traversal, otherwise break loop
             if(stackTopIndex == 0) break;
-            else currentNodeIndex = stack[--stackTopIndex];
+            currentNodeIndex = stack[--stackTopIndex];
         }
     }
     return isHit;
@@ -279,7 +279,7 @@ bool BVHAccel::IntersectP(const Ray &ray) const {
     Vector3f invD(1 / ray.d.x, 1 / ray.d.y, 1 / ray.d.z);
     int dirIsNeg[3] = {invD.x < 0, invD.y < 0, invD.z < 0};
     while(true) {
-        LinearBVHNode *node = node + currentNodeIndex;
+        LinearBVHNode *node = nodes + currentNodeIndex;
         if(node->bound.IntersectP(ray, invD, dirIsNeg)) {
             if(node->nPrimitives > 0) { // meet leaf node, traversal all primitives find the last hit point
                 for(int i = 0; i < node->nPrimitives; ++i) {
