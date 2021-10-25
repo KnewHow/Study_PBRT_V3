@@ -68,7 +68,7 @@ struct BucketInfo {
     Bounds3f bound; // The bound of these primitives
 };
 
-BVHAccel::BVHAccel(std::vector<std::shared_ptr<Primitive>> ps, SplitMethod sm, int maxPrimsInNode): primitives(std::move(ps)), method(sm), maxPrimitivesInNode(maxPrimsInNode) {
+BVHAccel::BVHAccel(std::vector<std::shared_ptr<Primitive>> ps, SplitMethod sm, int maxPrimsInNode): primitives(std::move(ps)), method(sm), maxPrimitivesInNode(maxPrimsInNode), nodes(nullptr) {
     if(primitives.size() == 0) return;
     std::vector<BVHPrimitiveInfo> infos(primitives.size());
     for(int i = 0; i < primitives.size(); ++i) 
@@ -82,6 +82,7 @@ BVHAccel::BVHAccel(std::vector<std::shared_ptr<Primitive>> ps, SplitMethod sm, i
     int offset = 0;
     FlattenBVHTree(root, offset);
     DCHECK_EQ(totalNodes, offset);
+    LOG(INFO) << "Build BVH success with " << totalNodes << " nodes";
 }
 
 BVHAccel::~BVHAccel() {

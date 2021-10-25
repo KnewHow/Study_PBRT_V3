@@ -28,25 +28,18 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdio.h>
-#include <sys/stat.h>
+#include <filesystem>
 #include "tests/gtest/gtest.h"
 #include <glog/logging.h>
 
 GTEST_API_ int main(int argc, char **argv) {
   google::InitGoogleLogging(argv[0]);
-  
+
   std::string log_dir = "/tmp/pbr_test_log";
-  struct stat buffer;
-  bool logDirIsExsit = (stat (log_dir.c_str(), &buffer) == 0);
-  // if(!logDirIsExsit) {
-   
-  // } else {
-    
-  // }
-  if (mkdir(log_dir.c_str(), 0777) == -1)
-      LOG(ERROR) << "Create log directory failure";
-  else
-      LOG(ERROR) << "Directory created";
+  bool log_dir_is_exsit = std::filesystem::exists(log_dir.c_str());
+  if(!log_dir_is_exsit) {
+    std::filesystem::create_directory(log_dir.c_str());
+  }
   FLAGS_log_dir = log_dir.c_str();
   FLAGS_stderrthreshold = 1; // Warning and above.
 

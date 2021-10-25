@@ -10,8 +10,12 @@ using namespace pbrt;
 
 TEST(GeometricPrimitive, InitPrimitive) {
     objl::Loader loader;
-    loader.LoadFile("../../resource/cube/cube.obj");
-    // loader.LoadFile("../../resource/connelbox/connelbox.obj");
+    std::string resourcePath = "../../resource/cube/cube.obj";
+    loader.LoadFile(resourcePath);
+    if(loader.LoadedMeshes.empty()) {
+        LOG(WARNING) << "not load mesh from this path: " << resourcePath;
+        return;
+    }
     std::vector<objl::Mesh> meshs = loader.LoadedMeshes;
     std::vector<std::shared_ptr<Primitive>> ps;
     for(const auto &mesh: meshs) {

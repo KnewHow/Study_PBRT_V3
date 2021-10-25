@@ -12,8 +12,12 @@ using namespace pbrt;
 
 TEST(BVHAccel, BaseTest) {
     objl::Loader loader;
-    loader.LoadFile("../../resource/cube/cube.obj");
-    // loader.LoadFile("../../resource/connelbox/connelbox.obj");
+    std::string resourcePath = "../../resource/cube/cube.obj";
+    loader.LoadFile(resourcePath);
+    if(loader.LoadedMeshes.empty()) {
+        LOG(WARNING) << "not load mesh from this path: " << resourcePath;
+        return;
+    }
     std::vector<objl::Mesh> meshs = loader.LoadedMeshes;
     std::vector<std::shared_ptr<Primitive>> ps;
     for(const auto &mesh: meshs) {
@@ -38,12 +42,31 @@ TEST(BVHAccel, BaseTest) {
         }
     }
     BVHAccel bvh(ps);
-    for(int i = 0; i < 100; i++) {
-        Ray ray(Point3f(0, 0, 0), Normalize(Vector3f(get_random_Float(),get_random_Float(),get_random_Float())));
+    int intersectTimes = 1000;
+    for(int i = 0; i < intersectTimes; i++) {
+        Ray ray(Point3f(0, 0, 0), Normalize(Vector3f(get_random_Float(), get_random_Float(), get_random_Float())));
         SurfaceInteraction isect;
         bool isHit = bvh.Intersect(ray, isect);
-        LOG(INFO) << "is hit: " << std::boolalpha << isHit << ", ray is: " << ray << ", hit point is: " << isect.p << ". hit point normal: " << isect.n;
+        // LOG(INFO) << "is hit: " << std::boolalpha << isHit << ", ray is: " << ray << ", hit point is: " << isect.p << ". hit point normal: " << isect.n;
         EXPECT_TRUE(isHit);
     }
+
+    for(int i = 0; i < intersectTimes; i++) {
+        Ray ray(Point3f(0, 0, 0), Normalize(Vector3f(get_random_Float(),get_random_Float(),get_random_Float())));
+        SurfaceInteraction isect;
+        bool isHit = bvh.IntersectP(ray);
+        EXPECT_TRUE(isHit);
+    }
+
+    {
+        Ray ray (Point3f(2, 0, 0), Vector3f(0, 1, 0));
+        SurfaceInteraction isect;
+        bool isHit = bvh.Intersect(ray, isect);
+        EXPECT_FALSE(isHit);
+        isHit = bvh.IntersectP(ray);
+        EXPECT_FALSE(isHit);
+    }
+
+
    
 }
