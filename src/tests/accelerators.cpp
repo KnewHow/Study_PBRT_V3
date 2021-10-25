@@ -105,17 +105,16 @@ void loadHugeModel(std::vector<std::shared_ptr<Primitive>> &ps, std::chrono::mil
     end = getCurrentMilliseconds();
 }
 
-void test_bvh_insersect(const std::shared_ptr<BVHAccel> bvh, std::chrono::milliseconds &begin, std::chrono::milliseconds &end) {
+void test_bvh_insersect(const std::shared_ptr<BVHAccel> bvh, const std::vector<Ray> rays, std::chrono::milliseconds &begin, std::chrono::milliseconds &end) {
     begin = getCurrentMilliseconds();
-    int intersectTimes = 10000;
     int hitTimes = 0;
-    for(int i = 0; i < intersectTimes; i++) {
-        Ray ray(Point3f(0, 0, 0), Normalize(Vector3f(get_random_Float(), get_random_Float(), get_random_Float())));
+    for(const Ray &ray: rays) {
         SurfaceInteraction isect;
         bool isHit = bvh->Intersect(ray, isect);
         if(isHit) ++hitTimes;
     }
-    LOG(INFO) << "test_bvh_insersect result, hit times: " << hitTimes << ", no hit times: " << intersectTimes - hitTimes;
+    
+    LOG(INFO) << "test_bvh_insersect result, hit times: " << hitTimes << ", no hit times: " << rays.size() - hitTimes;
     end = getCurrentMilliseconds();
 }
 
@@ -129,6 +128,27 @@ std::shared_ptr<BVHAccel> buildBVH(const std::vector<std::shared_ptr<Primitive>>
 void printTime(const std::string &prefix, const std::chrono::milliseconds &begin, const std::chrono::milliseconds &end) {
     LOG(INFO) << prefix << (end - begin).count();
 }
+
+std::vector<Ray> generateTestRays() {
+    int amount = 10000;
+    std::vector<Ray> rays(amount);
+    for(int i = 0; i < amount; i++) {
+        Ray r(Point3f(0, 0, 0), Normalize(Vector3f(get_random_Float(), get_random_Float(), get_random_Float())));
+        rays[i] = r;
+    }
+    return rays;
+}
+
+void generateTestRays2(std::vector<Ray> &rays) {
+    int amount = 10000;
+    rays.reserve(amount);
+    for(int i = 0; i < amount; i++) {
+        Ray r(Point3f(0, 0, 0), Normalize(Vector3f(get_random_Float(), get_random_Float(), get_random_Float())));
+        rays.push_back(r) ;
+    }
+}
+
+
 
 TEST(BVHAccel, ComparePerformance) {
     std::vector<std::shared_ptr<Primitive>> ps;
@@ -148,13 +168,17 @@ TEST(BVHAccel, ComparePerformance) {
     
     LOG(INFO) << "-------------------------------------------";
     
-    test_bvh_insersect(bvh_middle, begin, end);
+    //std::vector<Ray> rays = generateTestRays();
+    std::vector<Ray> rays;
+    generateTestRays2(rays);
+
+    test_bvh_insersect(bvh_middle, rays, begin, end);
     printTime("Test BVH with Millde took: ", begin, end);
 
-    test_bvh_insersect(bvh_equalCounts, begin, end);
+    test_bvh_insersect(bvh_equalCounts, rays, begin, end);
     printTime("Test BVH with EqualCounts took: ", begin, end);
 
-    test_bvh_insersect(bvh_sah, begin, end);
+    test_bvh_insersect(bvh_sah, rays, begin, end);
     printTime("Test BVH with SAH took: ", begin, end);
     
 } 
