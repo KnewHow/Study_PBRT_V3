@@ -50,7 +50,6 @@ TEST(BVHAccel, BaseTest) {
         Ray ray(Point3f(0, 0, 0), Normalize(Vector3f(get_random_Float(), get_random_Float(), get_random_Float())));
         SurfaceInteraction isect;
         bool isHit = bvh.Intersect(ray, isect);
-        // LOG(INFO) << "is hit: " << std::boolalpha << isHit << ", ray is: " << ray << ", hit point is: " << isect.p << ". hit point normal: " << isect.n;
         EXPECT_TRUE(isHit);
     }
 
@@ -128,7 +127,8 @@ TEST(BVHAccel, ComparePerformance) {
 
 bool loadHugeModel(std::vector<std::shared_ptr<Primitive>> &ps, std::chrono::milliseconds &begin, std::chrono::milliseconds &end) {
     begin = getCurrentMilliseconds();
-    std::string HUGE_MODEL_PATH = "../../resource/hutao/hutao.obj";
+    //std::string HUGE_MODEL_PATH = "../../resource/hutao/hutao.obj";
+    std::string HUGE_MODEL_PATH = "../../resource/cube/cube.obj";
     objl::Loader loader;
     loader.LoadFile(HUGE_MODEL_PATH);
     if(loader.LoadedMeshes.empty()) {

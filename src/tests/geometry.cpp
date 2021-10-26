@@ -30,10 +30,6 @@ inline int get_random_int(int begin, int end) {
     return dist(rng);
 }
 
-inline bool compare_float(const Float &p1, const Float &v2) {
-    return std::abs(p1 - v2) < ShadowEpsilon;
-}
-
 inline bool compare_vector_float(const Vector2f &p1, const Vector2f &v2) {
     Vector2f r = p1 - v2;
     return compare_float(r.x, 0.0f) && compare_float(r.y, 0.0f); 

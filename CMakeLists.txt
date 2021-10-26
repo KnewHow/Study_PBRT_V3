@@ -4,6 +4,7 @@ project(PBRT)
 #sanitizers-cmake
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/ext/sanitizers-cmake/cmake" ${CMAKE_MODULE_PATH})
 find_package(Sanitizers)
+find_package ( Threads )
 
 
 
@@ -161,6 +162,7 @@ ENDIF()
 SET(ALL_PBRT_LIBS
   pbrt
   glog
+  ${CMAKE_THREAD_LIBS_INIT}
 )
 
 # Main renderer
