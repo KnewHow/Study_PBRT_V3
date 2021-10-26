@@ -8,6 +8,8 @@
 #include "accelerators/bvh.h"
 #include "clock.h"
 
+#include <filesystem>
+
 using namespace pbrt;
 
 
@@ -69,16 +71,69 @@ TEST(BVHAccel, BaseTest) {
     }
 }
 
+bool loadHugeModel(std::vector<std::shared_ptr<Primitive>> &ps, std::chrono::milliseconds &begin, std::chrono::milliseconds &end);
+void test_bvh_insersect(const std::shared_ptr<BVHAccel> bvh, const std::vector<Ray> rays, std::chrono::milliseconds &begin, std::chrono::milliseconds &end);
+void test_bvh_insersectP(const std::shared_ptr<BVHAccel> bvh, const std::vector<Ray> rays, std::chrono::milliseconds &begin, std::chrono::milliseconds &end);
+std::shared_ptr<BVHAccel> buildBVH(const std::vector<std::shared_ptr<Primitive>> &ps, BVHAccel::SplitMethod method, std::chrono::milliseconds &begin, std::chrono::milliseconds &end);
+void printTime(const std::string &prefix, const std::chrono::milliseconds &begin, const std::chrono::milliseconds &end);
+std::vector<Ray> generateTestRays();
+void generateTestRays2(std::vector<Ray> &rays);
+
+TEST(BVHAccel, ComparePerformance) {
+    std::vector<std::shared_ptr<Primitive>> ps;
+    LOG(INFO) << "current exec path: " << std::filesystem::current_path();
+    std::chrono::milliseconds begin, end;
+    bool r = loadHugeModel(ps, begin, end);
+    if(!r) {
+        return;
+    }
+    printTime("Load Huge Model took: ", begin, end);
 
 
-void loadHugeModel(std::vector<std::shared_ptr<Primitive>> &ps, std::chrono::milliseconds &begin, std::chrono::milliseconds &end) {
+    auto bvh_middle = buildBVH(ps, BVHAccel::SplitMethod::Middle, begin, end);
+    printTime("Build BVH with Millde took: ", begin, end);
+
+    auto bvh_equalCounts = buildBVH(ps, BVHAccel::SplitMethod::EqualCounts, begin, end);
+    printTime("Build BVH with EqualCounts took: ", begin, end);
+
+    auto bvh_sah = buildBVH(ps, BVHAccel::SplitMethod::SAH, begin, end);
+    printTime("Build BVH with SAH took: ", begin, end);
+    
+    LOG(INFO) << "---------------------test insersect----------------------------";
+    
+    //std::vector<Ray> rays = generateTestRays();
+    std::vector<Ray> rays;
+    generateTestRays2(rays);
+
+    test_bvh_insersect(bvh_middle, rays, begin, end);
+    printTime("Test BVH with Millde took: ", begin, end);
+
+    test_bvh_insersect(bvh_equalCounts, rays, begin, end);
+    printTime("Test BVH with EqualCounts took: ", begin, end);
+
+    test_bvh_insersect(bvh_sah, rays, begin, end);
+    printTime("Test BVH with SAH took: ", begin, end);
+
+    LOG(INFO) << "---------------------test insersectP----------------------------";
+
+    test_bvh_insersectP(bvh_middle, rays, begin, end);
+    printTime("Test BVH with Millde took: ", begin, end);
+
+    test_bvh_insersectP(bvh_equalCounts, rays, begin, end);
+    printTime("Test BVH with EqualCounts took: ", begin, end);
+
+    test_bvh_insersectP(bvh_sah, rays, begin, end);
+    printTime("Test BVH with SAH took: ", begin, end);
+}
+
+bool loadHugeModel(std::vector<std::shared_ptr<Primitive>> &ps, std::chrono::milliseconds &begin, std::chrono::milliseconds &end) {
     begin = getCurrentMilliseconds();
     std::string HUGE_MODEL_PATH = "../../resource/hutao/hutao.obj";
     objl::Loader loader;
     loader.LoadFile(HUGE_MODEL_PATH);
     if(loader.LoadedMeshes.empty()) {
         LOG(WARNING) << "not load mesh from this path: " << HUGE_MODEL_PATH;
-        return;
+        return false;
     }
     std::vector<objl::Mesh> meshs = loader.LoadedMeshes;
     for(const auto &mesh: meshs) {
@@ -103,6 +158,7 @@ void loadHugeModel(std::vector<std::shared_ptr<Primitive>> &ps, std::chrono::mil
         }
     }
     end = getCurrentMilliseconds();
+    return true;
 }
 
 void test_bvh_insersect(const std::shared_ptr<BVHAccel> bvh, const std::vector<Ray> rays, std::chrono::milliseconds &begin, std::chrono::milliseconds &end) {
@@ -113,7 +169,6 @@ void test_bvh_insersect(const std::shared_ptr<BVHAccel> bvh, const std::vector<R
         bool isHit = bvh->Intersect(ray, isect);
         if(isHit) ++hitTimes;
     }
-    
     LOG(INFO) << "test_bvh_insersect result, hit times: " << hitTimes << ", no hit times: " << rays.size() - hitTimes;
     end = getCurrentMilliseconds();
 }
@@ -158,46 +213,3 @@ void generateTestRays2(std::vector<Ray> &rays) {
         rays.push_back(r) ;
     }
 }
-
-TEST(BVHAccel, ComparePerformance) {
-    std::vector<std::shared_ptr<Primitive>> ps;
-    std::chrono::milliseconds begin, end;
-    loadHugeModel(ps, begin, end);
-    printTime("Load Huge Model took: ", begin, end);
-
-
-    auto bvh_middle = buildBVH(ps, BVHAccel::SplitMethod::Middle, begin, end);
-    printTime("Build BVH with Millde took: ", begin, end);
-
-    auto bvh_equalCounts = buildBVH(ps, BVHAccel::SplitMethod::EqualCounts, begin, end);
-    printTime("Build BVH with EqualCounts took: ", begin, end);
-
-    auto bvh_sah = buildBVH(ps, BVHAccel::SplitMethod::SAH, begin, end);
-    printTime("Build BVH with SAH took: ", begin, end);
-    
-    LOG(INFO) << "---------------------test insersect----------------------------";
-    
-    //std::vector<Ray> rays = generateTestRays();
-    std::vector<Ray> rays;
-    generateTestRays2(rays);
-
-    test_bvh_insersect(bvh_middle, rays, begin, end);
-    printTime("Test BVH with Millde took: ", begin, end);
-
-    test_bvh_insersect(bvh_equalCounts, rays, begin, end);
-    printTime("Test BVH with EqualCounts took: ", begin, end);
-
-    test_bvh_insersect(bvh_sah, rays, begin, end);
-    printTime("Test BVH with SAH took: ", begin, end);
-
-    LOG(INFO) << "---------------------test insersectP----------------------------";
-
-    test_bvh_insersectP(bvh_middle, rays, begin, end);
-    printTime("Test BVH with Millde took: ", begin, end);
-
-    test_bvh_insersectP(bvh_equalCounts, rays, begin, end);
-    printTime("Test BVH with EqualCounts took: ", begin, end);
-
-    test_bvh_insersectP(bvh_sah, rays, begin, end);
-    printTime("Test BVH with SAH took: ", begin, end);
-} 

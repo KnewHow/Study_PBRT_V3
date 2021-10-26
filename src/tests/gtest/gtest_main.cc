@@ -32,6 +32,8 @@
 #include "tests/gtest/gtest.h"
 #include <glog/logging.h>
 
+std::string resource_path = "123";
+
 GTEST_API_ int main(int argc, char **argv) {
   google::InitGoogleLogging(argv[0]);
 
