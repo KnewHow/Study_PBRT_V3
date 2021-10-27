@@ -64,7 +64,9 @@
         "cinttypes": "cpp",
         "typeinfo": "cpp",
         "variant": "cpp",
-        "codecvt": "cpp"
+        "codecvt": "cpp",
+        "condition_variable": "cpp",
+        "mutex": "cpp"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "cmake.configureSettings": { "gtest_build_samples": "ON" }

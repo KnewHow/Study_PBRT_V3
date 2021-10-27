@@ -1,9 +1,9 @@
+#include <chrono>
+
 #include "tests/gtest/gtest.h"
 #include "pbrt.h"
 #include "parallel.h"
 #include "stringprint.h"
-#include <chrono>
-
 
 using namespace pbrt;
 

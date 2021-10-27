@@ -1,3 +1,5 @@
+#include <filesystem>
+
 #include "tests/gtest/gtest.h"
 #include "pbrt.h"
 #include "shape.h"
@@ -7,8 +9,6 @@
 #include "material.h"
 #include "accelerators/bvh.h"
 #include "clock.h"
-
-#include <filesystem>
 
 using namespace pbrt;
 

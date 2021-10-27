@@ -13,6 +13,7 @@
 #include <limits>
 #include <algorithm>
 #include <random>
+#include <optional>
 #include <glog/logging.h>
 
 #include <string.h>
