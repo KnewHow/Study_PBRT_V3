@@ -59,8 +59,8 @@ public:
         activeWorkers = 0;
         next = nullptr;
     }
-    ParallelForLoopTask(std::function<void(Point2i)> func, const Point2i count)
-        :func2(std::move(func)), maxIndex(count.x * count.y), chunkSize(1), nX(count.x) {
+    ParallelForLoopTask(std::function<void(Point2i)> func, const Point2i count, int chunk = 1)
+        :func2(std::move(func)), maxIndex(count.x * count.y), chunkSize(chunk), nX(count.x) {
         nextIndex = 0;
         activeWorkers = 0;
         next = nullptr;
@@ -105,13 +105,21 @@ private:
 };
 
 
+/**
+ * A parallel exctutor
+*/
 class ParallelForLoopExecutor {
+private:
+    ParallelForLoopExecutor(){};
+    ~ParallelForLoopExecutor();
 public:
     /**
+     * Init ParallelForLoopExecutor, before call other mehtods, you must call this method first.
+     * We recommand you call this method once, then call other methods. If you has some special requirements, you can call it by youself.
      * @param maxAvailableThreads The Amount of available thread, if it is assigned, use it.
      * Otherwise use the max available threads the OS can support.
     */
-    ParallelForLoopExecutor(std::optional<int> maxAvailableThreads);
+    static void Init(std::optional<int> maxAvailableThreads);
 
     /**
      * Parallel execute 2D-function, we only guarentee parallel to execute, not do any sycn operations.
@@ -120,7 +128,7 @@ public:
      * @param count Use a point2i use represent how many points will be executed. The amout is equal: count.x * count.y.
      *              We will execute the point from (0, 0) to (count.x count.y)
     */
-    void ParallelFor2D(std::function<void(Point2i)> func, const Point2i &count);
+    static void ParallelFor2D(std::function<void(Point2i)> func, const Point2i &count, int chunkSize = 1);
     
     /**
      * Parallel execute 1D-function, we only guarentee parallel to execute, not do any sycn operations. 
@@ -129,27 +137,25 @@ public:
      * @param count The amount of how many interators will be executed. we will execute the for loop from 0 to the count;
      * @param chunkSize How many chunks each thread will be executed for one time.
     */
-    void ParallelFor1D(std::function<void(int64_t)> func, int64_t count, int chunkSize);
+    static void ParallelFor1D(std::function<void(int64_t)> func, int64_t count, int chunkSize);
 
     /**
      * Clean thread, when the program terminate, you can call this method to do some clean operations 
     */
-    void Clean();
+    static void Clean();
 
-    ~ParallelForLoopExecutor();
 
 private: 
-
     static void WorkerThreadFunc(int index, std::shared_ptr<Barrier> barrier);
-    int NumSystemCores() const { return std::max(1u, std::thread::hardware_concurrency()); }
+    static int NumSystemCores() { return std::max(1u, std::thread::hardware_concurrency()); }
 
+    static int nThreads;
     static std::vector<std::thread> threads; // Store all thread with a thread pool
     static ParallelForLoopTask *tasks; // A task list, you can see it as a head of link list;
     static std::mutex taskMutex; // A mutex to guarentee all task sync operation
     static std::condition_variable taskCV; // Let all worker threads wait for a condition;
     static bool shutdownThreads; // If we shutdown the thread pool
 };
-
 
 
 } // namespace pbrt
