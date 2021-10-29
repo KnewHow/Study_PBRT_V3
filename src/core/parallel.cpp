@@ -7,12 +7,19 @@ std::vector<std::thread> ParallelForLoopExecutor::threads;
 ParallelForLoopTask* ParallelForLoopExecutor::tasks = nullptr;
 std::mutex ParallelForLoopExecutor::taskMutex;
 std::condition_variable ParallelForLoopExecutor::taskCV;
-bool ParallelForLoopExecutor::shutdownThreads = false;
+bool ParallelForLoopExecutor::isShutdownThreads = false;
+
+std::atomic<bool> ParallelForLoopExecutor::isReportWorkerStats = false;
+std::atomic<int> ParallelForLoopExecutor::reporterCount = 0;
+std::condition_variable ParallelForLoopExecutor::reportDoneCV;
+std::mutex ParallelForLoopExecutor::reportMutex;
+StatsAccumulator ParallelForLoopExecutor::GLOBAL_STATS_ACCUMULATOR;
 
 void ParallelForLoopExecutor::Init(std::optional<int> maxAvailableThreads) {
     DCHECK_EQ(threads.size(), 0);
     tasks = nullptr;
-    shutdownThreads = false;
+    isShutdownThreads = false;
+    isReportWorkerStats = false;
     nThreads = maxAvailableThreads.has_value() ? maxAvailableThreads.value() : NumSystemCores();
     std::shared_ptr<Barrier> barrier = std::make_shared<Barrier>(nThreads);
     for(int i = 0; i < nThreads - 1; i++) { // we reserve main thread, don't put it into the thread pool
@@ -30,8 +37,13 @@ void ParallelForLoopExecutor::WorkerThreadFunc(int index, std::shared_ptr<Barrie
     barrier.reset(); // release barrier
 
     std::unique_lock<std::mutex> lock(taskMutex); // Below code will be execute serial
-    while(!shutdownThreads) {
-        if(tasks == nullptr) {
+    while(!isShutdownThreads) {
+        if(isReportWorkerStats) {
+            ReportThreadStats();
+            if(--reporterCount == 0)
+                reportDoneCV.notify_one(); // wake up main thread
+            taskCV.wait(lock); // then sleep again
+        } else if(!tasks) {
             taskCV.wait(lock);
         } else {
             ParallelForLoopTask &task = *tasks;
@@ -144,12 +156,32 @@ void ParallelForLoopExecutor::ParallelFor1D(std::function<void(int64_t)> func, i
     }
 }
 
+void ParallelForLoopExecutor::MergeWorkerThreadStats() {
+    std::unique_lock lock(taskMutex);
+    std::unique_lock doneLock(reportMutex);
+    isReportWorkerStats = true;
+    reporterCount = threads.size();
+    taskCV.notify_all();
+    reportDoneCV.wait(lock, [&](){ return reporterCount == 0; });
+    ReportThreadStats(); // because main thread join the calculation, so main thread need report statistic
+    isReportWorkerStats = false;
+}
+
+
+void ParallelForLoopExecutor::PrintStats(FILE *dest) {
+    GLOBAL_STATS_ACCUMULATOR.Print(dest);
+}
+
+void ParallelForLoopExecutor::ClearStats() {
+    GLOBAL_STATS_ACCUMULATOR.Clear();
+}
+
 void ParallelForLoopExecutor::Clean() {
     if(threads.empty()) return;
     
     {
         std::lock_guard<std::mutex> lock(taskMutex);
-        shutdownThreads = true;
+        isShutdownThreads = true;
         taskCV.notify_all();
     }
 
@@ -157,8 +189,13 @@ void ParallelForLoopExecutor::Clean() {
         thread.join();
     
     threads.erase(threads.begin(), threads.end());
-    shutdownThreads = false;
-    
+    isShutdownThreads = false;
+}
+
+void ParallelForLoopExecutor::ReportThreadStats() {
+    std::mutex mutex;
+    std::lock_guard<std::mutex> lock(mutex);
+    StatRegisterer::Callback(GLOBAL_STATS_ACCUMULATOR);
 }
 
 } // namespace pbrt

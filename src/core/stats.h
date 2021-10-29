@@ -6,6 +6,8 @@
 #ifndef PBRT_SRC_CORE_STATS_H_
 #define PBRT_SRC_CORE_STATS_H_
 
+#include <stdio.h>
+
 #include <map>
 #include <functional>
 
@@ -50,16 +52,34 @@ private:
 class StatsAccumulator {
 public:
     void ReportCounter(const std::string &name, int64_t val) {
-        counter[name] += val;
+        counters[name] += val;
     }
     void ReportMemoryCounter(const std::string &name, int64_t val) {
-        memoryCounter[name] += val;
+        memoryCounters[name] += val;
     }
+    void Print(FILE *dest);
+    void Clear();
 
 private:
-    std::map<std::string, int64_t> counter; // A counter to stat amout with name. The key represent name, the value represent amount
-    std::map<std::string, int64_t> memoryCounter; // A memory counter to stat memory size by name
+    std::map<std::string, int64_t> counters; // A counter to stat amout with name. The key represent name, the value represent amount
+    std::map<std::string, int64_t> memoryCounters; // A memory counter to stat memory size by name
 };
+
+#define STAT_COUNTER(title, var) \
+    static PBRT_THREAD_LOCAL int64_t var = 0; \
+    static void STATS_FUNC##var(StatsAccumulator &accum) { \
+        accum.ReportCounter(title, var); \
+        var = 0; \
+    } \
+    static StatRegisterer STATS_REG##var(STATS_FUNC##var)
+
+
+#define STAT_MEMORY_COUNTER(title, var) \
+    static PBRT_THREAD_LOCAL int64_t var = 0; \
+    static void STATS_FUNC##var(StatsAccumulator &accum) { \
+        accum.ReportMemoryCounter(title, var); \
+    } \
+    static StatRegisterer STATS_REG##var(STATS_FUNC##var)
 
 } // namespace pbrt
 

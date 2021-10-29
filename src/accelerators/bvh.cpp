@@ -1,9 +1,17 @@
 
 #include "bvh.h"
 #include "memory.h"
+#include "stats.h"
+#include "clock.h"
+#include "parallel.h"
+
 
 namespace pbrt {
 
+STAT_COUNTER("BVH/BVHBuildNode/LeafNode", LeafNodes);
+STAT_COUNTER("BVH/BVHBuildNode/Interior", InteriorNodes);
+STAT_COUNTER("BVH/HITTIMES", HitTimes);
+STAT_MEMORY_COUNTER("BVH/LinearBVHNode", LinearTreeBytes);
 /**
  * A linear BVH node, use it, we can avoid recursive traversal BVH tree, it will prompt performance
 */
@@ -27,6 +35,7 @@ struct BVHBuildNode {
         primitiveOffset = first;
         nPrimitives = n;
         bound = b;
+        ++LeafNodes;
         children[0] = children[1] = nullptr;
     }
     void InitInterior(int axis, std::shared_ptr<BVHBuildNode> c0, std::shared_ptr<BVHBuildNode> c1) {
@@ -35,6 +44,7 @@ struct BVHBuildNode {
         children[1] = c1;
         bound = Union(c0->bound, c1->bound);
         nPrimitives = 0;
+        ++InteriorNodes;
     }
     Bounds3f bound;
     std::shared_ptr<BVHBuildNode> children[2]; // Only for interior node
@@ -79,6 +89,7 @@ BVHAccel::BVHAccel(std::vector<std::shared_ptr<Primitive>> ps, SplitMethod sm, i
     std::shared_ptr<BVHBuildNode> root = RecursiveBuild(infos, 0, infos.size(), totalNodes, orderedPrimitives);
     primitives.swap(orderedPrimitives);
     nodes = AllocAligned<LinearBVHNode>(totalNodes);
+    LinearTreeBytes += (totalNodes * sizeof(LinearBVHNode) + primitives.size() * sizeof(primitives[0]));
     int offset = 0;
     FlattenBVHTree(root, offset);
     DCHECK_EQ(totalNodes, offset);
@@ -267,6 +278,7 @@ bool BVHAccel::Intersect(const Ray &ray, SurfaceInteraction &isect) const {
             currentNodeIndex = stack[--stackTopIndex];
         }
     }
+    ++HitTimes;
     return isHit;
 }
 

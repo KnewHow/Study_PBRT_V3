@@ -15,6 +15,7 @@
 
 #include "pbrt.h"
 #include "geometry.h"
+#include "stats.h"
 
 namespace pbrt {
 
@@ -95,7 +96,7 @@ public:
         if(--activeThreads == 0) // if all thead complete pre-process, notify all, otherwise wait for others
             cv.notify_all();
         else
-            cv.wait(lock, [this]{return activeThreads == 0;});
+            cv.wait(lock, [&](){return activeThreads == 0;});
     }
 
 private:
@@ -139,22 +140,34 @@ public:
     */
     static void ParallelFor1D(std::function<void(int64_t)> func, int64_t count, int chunkSize);
 
+    
+    static void MergeWorkerThreadStats();
+
+    static void PrintStats(FILE *dest);
+    static void ClearStats();
     /**
      * Clean thread, when the program terminate, you can call this method to do some clean operations 
     */
     static void Clean();
 
-
 private: 
     static void WorkerThreadFunc(int index, std::shared_ptr<Barrier> barrier);
     static int NumSystemCores() { return std::max(1u, std::thread::hardware_concurrency()); }
+    static void ReportThreadStats();
 
     static int nThreads;
     static std::vector<std::thread> threads; // Store all thread with a thread pool
     static ParallelForLoopTask *tasks; // A task list, you can see it as a head of link list;
     static std::mutex taskMutex; // A mutex to guarentee all task sync operation
     static std::condition_variable taskCV; // Let all worker threads wait for a condition;
-    static bool shutdownThreads; // If we shutdown the thread pool
+    static bool isShutdownThreads; // If we shutdown the thread pool
+
+    // Below variable is relative of statistics
+    static StatsAccumulator GLOBAL_STATS_ACCUMULATOR; // a global stats accumulator
+    static std::atomic<bool> isReportWorkerStats; // Whether execute statistic  
+    static std::atomic<int> reporterCount; // how many thread is stating, if the variable is zero, we will finish statistic work
+    static std::condition_variable reportDoneCV; // let main thread wait until all threads complete statistic work
+    static std::mutex reportMutex; // a mutex do some sync when do some statistic work
 };
 
 

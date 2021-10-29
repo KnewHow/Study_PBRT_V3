@@ -70,19 +70,18 @@ TEST(BVHAccel, BaseTest) {
     }
 }
 
-bool loadHugeModel(std::vector<std::shared_ptr<Primitive>> &ps, std::chrono::milliseconds &begin, std::chrono::milliseconds &end);
+bool loadHugeModel(std::vector<std::shared_ptr<Primitive>> &ps, std::optional<std::string> path, std::chrono::milliseconds &begin, std::chrono::milliseconds &end);
 void test_bvh_insersect(const std::shared_ptr<BVHAccel> bvh, const std::vector<Ray> rays, std::chrono::milliseconds &begin, std::chrono::milliseconds &end);
 void test_bvh_insersectP(const std::shared_ptr<BVHAccel> bvh, const std::vector<Ray> rays, std::chrono::milliseconds &begin, std::chrono::milliseconds &end);
 std::shared_ptr<BVHAccel> buildBVH(const std::vector<std::shared_ptr<Primitive>> &ps, BVHAccel::SplitMethod method, std::chrono::milliseconds &begin, std::chrono::milliseconds &end);
 void printTime(const std::string &prefix, const std::chrono::milliseconds &begin, const std::chrono::milliseconds &end);
-std::vector<Ray> generateTestRays();
-void generateTestRays2(std::vector<Ray> &rays);
+void generateTestRays(std::vector<Ray> &rays, int size = 10000);
 
 TEST(BVHAccel, ComparePerformance) {
     std::vector<std::shared_ptr<Primitive>> ps;
     LOG(INFO) << "current exec path: " << std::filesystem::current_path();
     std::chrono::milliseconds begin, end;
-    bool r = loadHugeModel(ps, begin, end);
+    bool r = loadHugeModel(ps, std::nullopt, begin, end);
     if(!r) {
         return;
     }
@@ -102,7 +101,7 @@ TEST(BVHAccel, ComparePerformance) {
     
     //std::vector<Ray> rays = generateTestRays();
     std::vector<Ray> rays;
-    generateTestRays2(rays);
+    generateTestRays(rays);
 
     test_bvh_insersect(bvh_middle, rays, begin, end);
     printTime("Test BVH with Millde took: ", begin, end);
@@ -125,10 +124,9 @@ TEST(BVHAccel, ComparePerformance) {
     printTime("Test BVH with SAH took: ", begin, end);
 }
 
-bool loadHugeModel(std::vector<std::shared_ptr<Primitive>> &ps, std::chrono::milliseconds &begin, std::chrono::milliseconds &end) {
+bool loadHugeModel(std::vector<std::shared_ptr<Primitive>> &ps, std::optional<std::string> path, std::chrono::milliseconds &begin, std::chrono::milliseconds &end) {
     begin = getCurrentMilliseconds();
-    //std::string HUGE_MODEL_PATH = "../../resource/hutao/hutao.obj";
-    std::string HUGE_MODEL_PATH = "../../resource/cube/cube.obj";
+    std::string HUGE_MODEL_PATH = path.has_value() ? path.value() : "../../resource/cube/cube.obj";
     objl::Loader loader;
     loader.LoadFile(HUGE_MODEL_PATH);
     if(loader.LoadedMeshes.empty()) {
@@ -195,20 +193,9 @@ void printTime(const std::string &prefix, const std::chrono::milliseconds &begin
     LOG(INFO) << prefix << (end - begin).count();
 }
 
-std::vector<Ray> generateTestRays() {
-    int amount = 10000;
-    std::vector<Ray> rays(amount);
-    for(int i = 0; i < amount; i++) {
-        Ray r(Point3f(0, 0, 0), Normalize(Vector3f(get_random_Float(), get_random_Float(), get_random_Float())));
-        rays[i] = r;
-    }
-    return rays;
-}
-
-void generateTestRays2(std::vector<Ray> &rays) {
-    int amount = 10000;
-    rays.reserve(amount);
-    for(int i = 0; i < amount; i++) {
+void generateTestRays(std::vector<Ray> &rays, int size) {
+    rays.reserve(size);
+    for(int i = 0; i < size; i++) {
         Ray r(Point3f(0, 0, 0), Normalize(Vector3f(get_random_Float(), get_random_Float(), get_random_Float())));
         rays.push_back(r) ;
     }

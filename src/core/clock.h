@@ -7,6 +7,7 @@
 #define PBRT_SRC_CORE_CLOCK_H_
 
 #include <chrono>
+#include <ctime>
 
 namespace pbrt {
 
