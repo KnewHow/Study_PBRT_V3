@@ -37,6 +37,7 @@ std::string resource_path = "123";
 GTEST_API_ int main(int argc, char **argv) {
   google::InitGoogleLogging(argv[0]);
 
+  
   std::string log_dir = "/tmp/pbr_test_log";
   bool log_dir_is_exsit = std::filesystem::exists(log_dir.c_str());
   if(!log_dir_is_exsit) {
@@ -47,5 +48,8 @@ GTEST_API_ int main(int argc, char **argv) {
 
   printf("Running main() from gtest_main.cc\n");
   testing::InitGoogleTest(&argc, argv);
+  for(int i =0; i < argc; ++i) {
+    LOG(INFO) << "argv[" << i << "] is: " << argv[i]; 
+  }
   return RUN_ALL_TESTS();
 }

@@ -9,7 +9,10 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceRoot}/build/pbrt_test",
-            "args": [],
+            "args": [
+                "--obj",
+                "./abc.obj"
+            ],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
