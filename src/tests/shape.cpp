@@ -9,7 +9,7 @@ using namespace pbrt;
 
 TEST(Triangle, BaseTest) {
     objl::Loader loader;
-    std::string resourcePath = "../../resource/cube/cube.obj";
+    std::string resourcePath = "../resource/cube/cube.obj";
     loader.LoadFile(resourcePath);
     if(loader.LoadedMeshes.empty()) {
         LOG(WARNING) << "not load mesh from this path: " << resourcePath;

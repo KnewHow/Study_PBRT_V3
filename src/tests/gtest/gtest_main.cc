@@ -27,16 +27,15 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <stdio.h>
 #include <filesystem>
 #include "tests/gtest/gtest.h"
 #include <glog/logging.h>
+#include "../pbrt_test.h"
 
-std::string resource_path = "123";
+using namespace pbrt;
 
 GTEST_API_ int main(int argc, char **argv) {
   google::InitGoogleLogging(argv[0]);
-
   
   std::string log_dir = "/tmp/pbr_test_log";
   bool log_dir_is_exsit = std::filesystem::exists(log_dir.c_str());
@@ -48,8 +47,5 @@ GTEST_API_ int main(int argc, char **argv) {
 
   printf("Running main() from gtest_main.cc\n");
   testing::InitGoogleTest(&argc, argv);
-  for(int i =0; i < argc; ++i) {
-    LOG(INFO) << "argv[" << i << "] is: " << argv[i]; 
-  }
   return RUN_ALL_TESTS();
 }

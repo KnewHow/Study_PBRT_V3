@@ -1,11 +1,9 @@
 #include <filesystem>
 
-#include "tests/gtest/gtest.h"
-#include "pbrt.h"
+#include "pbrt_test.h"
 #include "shape.h"
 #include "shape/triangle.h"
 #include "primitive.h"
-#include "OBJ_Loader.h"
 #include "material.h"
 #include "accelerators/bvh.h"
 #include "clock.h"
@@ -14,13 +12,9 @@
 
 using namespace pbrt;
 
-bool loadHugeModel(std::vector<std::shared_ptr<Primitive>> &ps, std::optional<std::string> path, std::chrono::milliseconds &begin, std::chrono::milliseconds &end);
 void test_bvh_insersect(const std::shared_ptr<BVHAccel> bvh, const std::vector<Ray> rays, std::chrono::milliseconds &begin, std::chrono::milliseconds &end);
-void test_bvh_insersectP(const std::shared_ptr<BVHAccel> bvh, const std::vector<Ray> rays, std::chrono::milliseconds &begin, std::chrono::milliseconds &end);
 std::shared_ptr<BVHAccel> buildBVH(const std::vector<std::shared_ptr<Primitive>> &ps, BVHAccel::SplitMethod method, std::chrono::milliseconds &begin, std::chrono::milliseconds &end);
-void printTime(const std::string &prefix, const std::chrono::milliseconds &begin, const std::chrono::milliseconds &end);
-std::vector<Ray> generateTestRays();
-void generateTestRays(std::vector<Ray> &rays, int size = 10000);
+
 
 
 TEST(Stats, ParallelStatistic) {
@@ -28,13 +22,12 @@ TEST(Stats, ParallelStatistic) {
     fp  = fopen ("/tmp/pbr_test_log/pbrt_stat.txt", "w+"); 
     std::vector<std::shared_ptr<Primitive>> ps;
     std::chrono::milliseconds begin, end;
-    bool r = loadHugeModel(ps, "../../resource/hutao/hutao.obj", begin, end);
-    if(!r) {
-        return;
-    }
+    bool r = loadModel(ps, "../resource/hutao/hutao.obj");
+    if(!r) return;
     auto bvh_sah = buildBVH(ps, BVHAccel::SplitMethod::SAH, begin, end);
     std::vector<Ray> rays;
     generateTestRays(rays, 50000);
+    
     
     ParallelForLoopExecutor::Init(std::nullopt);
     ParallelForLoopExecutor::MergeWorkerThreadStats(); 

@@ -203,6 +203,7 @@ TARGET_LINK_LIBRARIES ( pbrt_exe ${ALL_PBRT_LIBS} )
 # Unit test
 FILE (GLOB PBRT_TEST_SOURCE
   src/tests/*.cpp
+  src/tests/*.h
   src/tests/gtest/*.cc
 )
 ENABLE_TESTING()

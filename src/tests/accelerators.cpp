@@ -1,12 +1,6 @@
 #include <filesystem>
 
-#include "tests/gtest/gtest.h"
-#include "pbrt.h"
-#include "shape.h"
-#include "shape/triangle.h"
-#include "primitive.h"
-#include "OBJ_Loader.h"
-#include "material.h"
+#include "pbrt_test.h"
 #include "accelerators/bvh.h"
 #include "clock.h"
 
@@ -14,36 +8,9 @@ using namespace pbrt;
 
 
 TEST(BVHAccel, BaseTest) {
-    objl::Loader loader;
-    std::string resourcePath = "../../resource/cube/cube.obj";
-    loader.LoadFile(resourcePath);
-    if(loader.LoadedMeshes.empty()) {
-        LOG(WARNING) << "not load mesh from this path: " << resourcePath;
-        return;
-    }
-    std::vector<objl::Mesh> meshs = loader.LoadedMeshes;
     std::vector<std::shared_ptr<Primitive>> ps;
-    for(const auto &mesh: meshs) {
-        std::shared_ptr<Material> material = std::make_shared<Material>(RGBAf(mesh.MeshMaterial.Kd.X, mesh.MeshMaterial.Kd.Y, mesh.MeshMaterial.Kd.Z, 1.0),
-                                                                        RGBAf(mesh.MeshMaterial.Ks.X, mesh.MeshMaterial.Ks.Y, mesh.MeshMaterial.Ks.Z, 1.0));
-        std::vector<int> idxs;
-        std::vector<Point3f> p;
-        std::vector<Normal3f> n;
-        p.reserve(mesh.Vertices.size());
-        n.reserve(mesh.Vertices.size());
-        idxs.reserve(mesh.Indices.size());
-        for(const auto &vertex: mesh.Vertices) {
-            p.push_back(Point3f(vertex.Position.X, vertex.Position.Y, vertex.Position.Z));
-            n.push_back(Normal3f(vertex.Normal.X, vertex.Normal.Y, vertex.Normal.Z));
-        }
-        for(const auto idx: mesh.Indices) idxs.push_back(idx);
-        std::shared_ptr<TriangleMesh> m = std::make_shared<TriangleMesh>(idxs.size()/3, p.size(), idxs, p, n);
-        for(int i = 0; i < idxs.size(); i += 3) {
-            std::shared_ptr<Triangle> triangle = std::make_shared<Triangle>(m, i/3);
-            std::shared_ptr<GeometicPrimitive> gp = std::make_shared<GeometicPrimitive>(triangle, material);
-            ps.push_back(gp);
-        }
-    }
+    bool r = loadModel(ps, "../resource/cube/cube.obj");
+    if(!r) return;
     BVHAccel bvh(ps);
     int intersectTimes = 1000;
     for(int i = 0; i < intersectTimes; i++) {
@@ -70,24 +37,19 @@ TEST(BVHAccel, BaseTest) {
     }
 }
 
-bool loadHugeModel(std::vector<std::shared_ptr<Primitive>> &ps, std::optional<std::string> path, std::chrono::milliseconds &begin, std::chrono::milliseconds &end);
 void test_bvh_insersect(const std::shared_ptr<BVHAccel> bvh, const std::vector<Ray> rays, std::chrono::milliseconds &begin, std::chrono::milliseconds &end);
 void test_bvh_insersectP(const std::shared_ptr<BVHAccel> bvh, const std::vector<Ray> rays, std::chrono::milliseconds &begin, std::chrono::milliseconds &end);
 std::shared_ptr<BVHAccel> buildBVH(const std::vector<std::shared_ptr<Primitive>> &ps, BVHAccel::SplitMethod method, std::chrono::milliseconds &begin, std::chrono::milliseconds &end);
-void printTime(const std::string &prefix, const std::chrono::milliseconds &begin, const std::chrono::milliseconds &end);
-void generateTestRays(std::vector<Ray> &rays, int size = 10000);
 
 TEST(BVHAccel, ComparePerformance) {
     std::vector<std::shared_ptr<Primitive>> ps;
     LOG(INFO) << "current exec path: " << std::filesystem::current_path();
     std::chrono::milliseconds begin, end;
-    bool r = loadHugeModel(ps, std::nullopt, begin, end);
+    bool r = loadModel(ps, "../resource/hutao/hutao.obj");
     if(!r) {
         return;
     }
-    printTime("Load Huge Model took: ", begin, end);
-
-
+   
     auto bvh_middle = buildBVH(ps, BVHAccel::SplitMethod::Middle, begin, end);
     printTime("Build BVH with Millde took: ", begin, end);
 
@@ -124,41 +86,6 @@ TEST(BVHAccel, ComparePerformance) {
     printTime("Test BVH with SAH took: ", begin, end);
 }
 
-bool loadHugeModel(std::vector<std::shared_ptr<Primitive>> &ps, std::optional<std::string> path, std::chrono::milliseconds &begin, std::chrono::milliseconds &end) {
-    begin = getCurrentMilliseconds();
-    std::string HUGE_MODEL_PATH = path.has_value() ? path.value() : "../../resource/cube/cube.obj";
-    objl::Loader loader;
-    loader.LoadFile(HUGE_MODEL_PATH);
-    if(loader.LoadedMeshes.empty()) {
-        LOG(WARNING) << "not load mesh from this path: " << HUGE_MODEL_PATH;
-        return false;
-    }
-    std::vector<objl::Mesh> meshs = loader.LoadedMeshes;
-    for(const auto &mesh: meshs) {
-        std::shared_ptr<Material> material = std::make_shared<Material>(RGBAf(mesh.MeshMaterial.Kd.X, mesh.MeshMaterial.Kd.Y, mesh.MeshMaterial.Kd.Z, 1.0),
-                                                                        RGBAf(mesh.MeshMaterial.Ks.X, mesh.MeshMaterial.Ks.Y, mesh.MeshMaterial.Ks.Z, 1.0));
-        std::vector<int> idxs;
-        std::vector<Point3f> p;
-        std::vector<Normal3f> n;
-        p.reserve(mesh.Vertices.size());
-        n.reserve(mesh.Vertices.size());
-        idxs.reserve(mesh.Indices.size());
-        for(const auto &vertex: mesh.Vertices) {
-            p.push_back(Point3f(vertex.Position.X, vertex.Position.Y, vertex.Position.Z));
-            n.push_back(Normal3f(vertex.Normal.X, vertex.Normal.Y, vertex.Normal.Z));
-        }
-        for(const auto idx: mesh.Indices) idxs.push_back(idx);
-        std::shared_ptr<TriangleMesh> m = std::make_shared<TriangleMesh>(idxs.size()/3, p.size(), idxs, p, n);
-        for(int i = 0; i < idxs.size(); i += 3) {
-            std::shared_ptr<Triangle> triangle = std::make_shared<Triangle>(m, i/3);
-            std::shared_ptr<GeometicPrimitive> gp = std::make_shared<GeometicPrimitive>(triangle, material);
-            ps.push_back(gp);
-        }
-    }
-    end = getCurrentMilliseconds();
-    return true;
-}
-
 void test_bvh_insersect(const std::shared_ptr<BVHAccel> bvh, const std::vector<Ray> rays, std::chrono::milliseconds &begin, std::chrono::milliseconds &end) {
     begin = getCurrentMilliseconds();
     int hitTimes = 0;
@@ -187,16 +114,4 @@ std::shared_ptr<BVHAccel> buildBVH(const std::vector<std::shared_ptr<Primitive>>
     std::shared_ptr<BVHAccel> bvh = std::make_shared<BVHAccel>(ps, method);
     end = getCurrentMilliseconds();
     return bvh;
-}
-
-void printTime(const std::string &prefix, const std::chrono::milliseconds &begin, const std::chrono::milliseconds &end) {
-    LOG(INFO) << prefix << (end - begin).count();
-}
-
-void generateTestRays(std::vector<Ray> &rays, int size) {
-    rays.reserve(size);
-    for(int i = 0; i < size; i++) {
-        Ray r(Point3f(0, 0, 0), Normalize(Vector3f(get_random_Float(), get_random_Float(), get_random_Float())));
-        rays.push_back(r) ;
-    }
 }

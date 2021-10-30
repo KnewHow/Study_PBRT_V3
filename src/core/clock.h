@@ -12,7 +12,7 @@
 namespace pbrt {
 
 inline std::chrono::milliseconds getCurrentMilliseconds() {
-    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch());
 }
 
 
