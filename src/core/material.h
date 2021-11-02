@@ -7,26 +7,9 @@
 #define PBRT_SRC_CORE_MATERIAL_H_
 
 #include "pbrt.h"
+#include "spectrum.h"
 
 namespace pbrt {
-
-template <typename T>
-class RGBA {
-public:
-    RGBA(): R(0), G(0), B(0), A(0){}
-    RGBA(T R, T G, T B, T A): R(R), G(G), B(B), A(A){}
-    RGBA &operator=(const RGBA &rgba) {
-        R = rgba.R;
-        G = rgba.G;
-        B = rgba.B;
-        A = rgba.A;
-        return *this;
-    }
-    T R, G, B, A;
-};
-
-typedef RGBA<Float> RGBAf;
-typedef RGBA<int> RGBAi;
 
 class Material{
 public:

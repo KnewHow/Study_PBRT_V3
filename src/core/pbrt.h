@@ -81,6 +81,8 @@ class Interaction;
 class SurfaceInteraction;
 class Primitive;
 class Shape;
+class Transform;
+class Film;
 class Material;
 
 inline bool compare_float(const Float &p1, const Float &v2) {
