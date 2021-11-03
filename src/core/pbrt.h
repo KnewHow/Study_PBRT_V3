@@ -136,6 +136,10 @@ inline double BitsToFloat(uint64_t ui) {
     return f;
 }
 
+inline Float DegTorad(Float degree) {
+    return degree * M_PI / 180.0;
+}
+
 } // namespace pbrt
 
 

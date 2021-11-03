@@ -24,7 +24,8 @@ public:
             std::fill_n(std::back_inserter(pixel), fullResolution.x * fullResolution.y, RGBAf(0, 0, 0, 1));
         }
     void WriteImage() const;
-    void AddSplat(const Point2i &p, const RGBAf &spectrum);   
+    void AddSplat(const Point2i &p, const RGBAf &spectrum);
+    inline Float GetRatio() const { return (Float)fullResolution.x / fullResolution.y; }  
     const Point2i fullResolution;
     const std::string filepath; // the final image path
 

@@ -17,9 +17,6 @@
 
 namespace pbrt {
 
-static std::map<std::string, std::vector<std::shared_ptr<Primitive>>> PSCache;
-
-bool loadModel(std::vector<std::shared_ptr<Primitive>> &ps, const std::string &path);
 void generateTestRays(std::vector<Ray> &rays, int size = 10000);
 void printTime(const std::string &prefix, const std::chrono::milliseconds &begin, const std::chrono::milliseconds &end);
 

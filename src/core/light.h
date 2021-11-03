@@ -16,7 +16,6 @@ namespace pbrt {
  * A light basic class
 */
 class Light {
-    virtual RGBAf Power() const = 0;
 };
 
 } // namespace pbrt

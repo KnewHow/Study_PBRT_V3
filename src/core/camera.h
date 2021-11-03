@@ -9,6 +9,7 @@
 #include "pbrt.h"
 #include "geometry.h"
 #include "transform.h"
+#include "film.h"
 
 namespace pbrt {
 
@@ -29,8 +30,9 @@ public:
      * @return the value represent the weight of how many radiance contribute to this point. 
     */
     virtual Float generateRay(const Point2i &p, Ray &ray) const = 0;
-    Transform cameraToWorld; // 
+protected:
     std::shared_ptr<Film> film; // a film store some image informations
+    Transform cameraToWorld; // 
 };
 
 

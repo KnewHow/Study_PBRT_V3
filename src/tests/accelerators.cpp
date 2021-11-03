@@ -3,13 +3,14 @@
 #include "pbrt_test.h"
 #include "accelerators/bvh.h"
 #include "clock.h"
+#include "scene.h"
 
 using namespace pbrt;
 
 
 TEST(BVHAccel, BaseTest) {
     std::vector<std::shared_ptr<Primitive>> ps;
-    bool r = loadModel(ps, "../resource/cube/cube.obj");
+    bool r = Scene::loadModel(ps, "../resource/cube/cube.obj");
     if(!r) return;
     BVHAccel bvh(ps);
     int intersectTimes = 1000;
@@ -45,7 +46,7 @@ TEST(BVHAccel, ComparePerformance) {
     std::vector<std::shared_ptr<Primitive>> ps;
     LOG(INFO) << "current exec path: " << std::filesystem::current_path();
     std::chrono::milliseconds begin, end;
-    bool r = loadModel(ps, "../resource/hutao/hutao.obj");
+    bool r = Scene::loadModel(ps, "../resource/hutao/hutao.obj");
     if(!r) {
         return;
     }

@@ -9,6 +9,7 @@
 #include "clock.h"
 #include "parallel.h"
 #include "stats.h"
+#include "scene.h"
 
 using namespace pbrt;
 
@@ -22,7 +23,7 @@ TEST(Stats, ParallelStatistic) {
     fp  = fopen ("/tmp/pbr_test_log/pbrt_stat.txt", "w+"); 
     std::vector<std::shared_ptr<Primitive>> ps;
     std::chrono::milliseconds begin, end;
-    bool r = loadModel(ps, "../resource/hutao/hutao.obj");
+    bool r = Scene::loadModel(ps, "../resource/hutao/hutao.obj");
     if(!r) return;
     auto bvh_sah = buildBVH(ps, BVHAccel::SplitMethod::SAH, begin, end);
     std::vector<Ray> rays;
