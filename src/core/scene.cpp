@@ -24,7 +24,7 @@ bool Scene::loadModel(std::vector<std::shared_ptr<Primitive>> &ps, const std::st
     begin = getCurrentMilliseconds();
     std::vector<objl::Mesh> meshs = loader.LoadedMeshes;
     for(const auto &mesh: meshs) {
-        // std::shared_ptr<Material> material = std::make_shared<Material>(RGBAf(mesh.MeshMaterial.Kd.X, mesh.MeshMaterial.Kd.Y, mesh.MeshMaterial.Kd.Z, 1.0),
+        //std::shared_ptr<Material> material = std::make_shared<Material>(RGBAf(mesh.MeshMaterial.Kd.X, mesh.MeshMaterial.Kd.Y, mesh.MeshMaterial.Kd.Z, 1.0),
         
         std::shared_ptr<Material> material = std::make_shared<Material>(RGBAf(1, 1, 1, 1.0),
                                                                        RGBAf(mesh.MeshMaterial.Ks.X, mesh.MeshMaterial.Ks.Y, mesh.MeshMaterial.Ks.Z, 1.0));

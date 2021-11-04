@@ -12,11 +12,9 @@ namespace pbrt {
 
 class PinholeCamera: public Camera {
 public:
-    PinholeCamera(const Transform &cameraToWorld, std::shared_ptr<Film> film, Point3f p)
-        :Camera(cameraToWorld, film), position(p){}
+    PinholeCamera(const Transform &cameraToWorld, std::shared_ptr<Film> film)
+        :Camera(cameraToWorld, film){}
     virtual Float generateRay(const Point2i &p, Ray &ray) const override;
-private:
-    Point3f position;
 };
 
 } // namespace pbrt

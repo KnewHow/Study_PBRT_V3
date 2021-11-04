@@ -136,9 +136,9 @@ inline double BitsToFloat(uint64_t ui) {
     return f;
 }
 
-inline Float DegTorad(Float degree) {
-    return degree * M_PI / 180.0;
-}
+inline Float Radians(Float deg) { return (Pi / 180) * deg; }
+
+inline Float Degrees(Float rad) { return (180 / Pi) * rad; }
 
 } // namespace pbrt
 
