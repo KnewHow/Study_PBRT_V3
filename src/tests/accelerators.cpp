@@ -46,7 +46,8 @@ TEST(BVHAccel, ComparePerformance) {
     std::vector<std::shared_ptr<Primitive>> ps;
     LOG(INFO) << "current exec path: " << std::filesystem::current_path();
     std::chrono::milliseconds begin, end;
-    bool r = Scene::loadModel(ps, "../resource/hutao/hutao.obj");
+    //bool r = Scene::loadModel(ps, "../resource/hutao/hutao.obj");
+    bool r = Scene::loadModel(ps, "../resource/cube/cube.obj");
     if(!r) {
         return;
     }

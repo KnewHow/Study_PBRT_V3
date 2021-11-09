@@ -23,11 +23,12 @@ TEST(Stats, ParallelStatistic) {
     fp  = fopen ("/tmp/pbr_test_log/pbrt_stat.txt", "w+"); 
     std::vector<std::shared_ptr<Primitive>> ps;
     std::chrono::milliseconds begin, end;
-    bool r = Scene::loadModel(ps, "../resource/hutao/hutao.obj");
+    //bool r = Scene::loadModel(ps, "../resource/hutao/hutao.obj");
+    bool r = Scene::loadModel(ps, "../resource/cube/cube.obj");
     if(!r) return;
     auto bvh_sah = buildBVH(ps, BVHAccel::SplitMethod::SAH, begin, end);
     std::vector<Ray> rays;
-    generateTestRays(rays, 50000);
+    generateTestRays(rays, 5000);
     
     
     ParallelForLoopExecutor::Init(std::nullopt);
@@ -52,8 +53,8 @@ TEST(Stats, ParallelStatistic) {
     }, rays.size(), 1000);
     end = getCurrentMilliseconds();
     LOG(INFO) << "[Stats] test bvh intersect parallel took: " << (end - begin).count();
-    
     ParallelForLoopExecutor::MergeWorkerThreadStats(); 
     ParallelForLoopExecutor::PrintStats(fp);
     ParallelForLoopExecutor::Clean();
+    
 }

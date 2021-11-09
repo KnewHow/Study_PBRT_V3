@@ -136,6 +136,46 @@ inline double BitsToFloat(uint64_t ui) {
     return f;
 }
 
+inline float NextFloatUp(float v) { // Bumping a floating-point value up to the next greater representable floating-point value
+    if(std::isinf(v) && v > 0.0f) return v; // If the v is positive infinity, don't need to up it 
+    if(v == -0.f) v = 0.f; // Because 0.0 and -0.0 are not adjacent, and we need to up the v, so if we meet the -0.f, we need to transform it into 0.f
+    
+    uint32_t ui = FloatToBits(v);
+    if(v >= 0) ++ui;
+    else       --ui;
+    return BitsToFloat(ui);
+}
+
+inline double NextFloatUp(double v, int delta = 1) {
+    if(std::isinf(v) && v > 0.0f) return v; 
+    if(v == -0.f) v = 0.f; 
+    
+    uint64_t ui = FloatToBits(v);
+    if(v >= 0) ui += delta;
+    else       ui -= delta;
+    return BitsToFloat(ui);
+}
+
+inline float NextFloatDown(float v) { // Bumping a floating-point value down to the next smaller representable floating-point value
+    if(std::isinf(v) && v < 0.f) return v; // If the v is negative infinity, return directly.
+    if(v == 0.f) v = -0.f; // we want to get the value down to the next smaller, so if we meet the positve 0, we need to transform in into the negative 0
+
+    uint32_t ui = FloatToBits(v);
+    if(v > 0) --ui;
+    else      ++ui;
+    return BitsToFloat(ui);
+}
+
+inline double NextFloatDown(double v, int delta = 1) { // Bumping a floating-point value down to the next smaller representable floating-point value
+    if(std::isinf(v) && v < 0.f) return v;
+    if(v == 0.f) v = -0.f; 
+
+    uint64_t ui = FloatToBits(v);
+    if(v > 0) ui -= delta;
+    else      ui += delta;
+    return BitsToFloat(ui);
+}
+
 inline Float Radians(Float deg) { return (Pi / 180) * deg; }
 
 inline Float Degrees(Float rad) { return (180 / Pi) * rad; }
