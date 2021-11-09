@@ -26,10 +26,10 @@ int main(int argc, char* argv[]) {
     
     std::vector<std::shared_ptr<Light>> lights;
     lights.push_back(std::make_shared<PointLight>(Point3f(0, 2, 0), RGBAf(1, 1, 1, 1)));
-    std::shared_ptr<Scene> scene = std::make_shared<Scene>("../resource/connelbox/connelbox.obj", lights);
-    Point2i fullResolution = Point2i(1024, 1024);
+    std::shared_ptr<Scene> scene = std::make_shared<Scene>("../resource/cube/cube.obj", lights);
+    Point2i fullResolution = Point2i(512, 512);
     std::shared_ptr<Film> film = std::make_shared<Film>(fullResolution, "result.ppm");
-    Transform cameramTransform = LookAt(Point3f(278, 273, -800), Point3f(0, 0, 1), Vector3f(0, 1, 0)) * RotateZ(90) * RotateY(-90) * RotateX(120);
+    Transform cameramTransform = LookAt(Point3f(0, 0, -10), Point3f(0, 0, 1), Vector3f(0, 1, 0)) * RotateZ(45) * RotateX(45) * RotateY(45);
     std::shared_ptr<Camera> camera = std::make_shared<PinholeCamera>(Inverse(cameramTransform), film);
     ParallelForLoopExecutor::Init(std::nullopt);
     ParallelForLoopExecutor::ParallelFor2D([&](Point2i p){
