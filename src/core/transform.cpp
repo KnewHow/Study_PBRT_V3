@@ -1101,29 +1101,29 @@ void AnimatedTransform::Interpolate(Float time, Transform *t) const {
     *t = Translate(trans) * rotate.ToTransform() * Transform(scale);
 }
 
-// Ray AnimatedTransform::operator()(const Ray &r) const {
-//     if (!actuallyAnimated || r.time <= startTime)
-//         return (*startTransform)(r);
-//     else if (r.time >= endTime)
-//         return (*endTransform)(r);
-//     else {
-//         Transform t;
-//         Interpolate(r.time, &t);
-//         return t(r);
-//     }
-// }
+Ray AnimatedTransform::operator()(const Ray &r) const {
+    if (!actuallyAnimated || r.time <= startTime)
+        return (*startTransform)(r);
+    else if (r.time >= endTime)
+        return (*endTransform)(r);
+    else {
+        Transform t;
+        Interpolate(r.time, &t);
+        return t(r);
+    }
+}
 
-// RayDifferential AnimatedTransform::operator()(const RayDifferential &r) const {
-//     if (!actuallyAnimated || r.time <= startTime)
-//         return (*startTransform)(r);
-//     else if (r.time >= endTime)
-//         return (*endTransform)(r);
-//     else {
-//         Transform t;
-//         Interpolate(r.time, &t);
-//         return t(r);
-//     }
-// }
+RayDifferential AnimatedTransform::operator()(const RayDifferential &r) const {
+    if (!actuallyAnimated || r.time <= startTime)
+        return (*startTransform)(r);
+    else if (r.time >= endTime)
+        return (*endTransform)(r);
+    else {
+        Transform t;
+        Interpolate(r.time, &t);
+        return t(r);
+    }
+}
 
 Point3f AnimatedTransform::operator()(Float time, const Point3f &p) const {
     if (!actuallyAnimated || time <= startTime)

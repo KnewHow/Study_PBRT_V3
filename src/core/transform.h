@@ -153,11 +153,11 @@ class Transform {
     template <typename T>
     inline Vector3<T> operator()(const Vector3<T> &v, const Vector3<T> &vError,
                                  Vector3<T> *vTransError) const;
-    // inline Ray operator()(const Ray &r, Vector3f *oError,
-    //                       Vector3f *dError) const;
-    // inline Ray operator()(const Ray &r, const Vector3f &oErrorIn,
-    //                       const Vector3f &dErrorIn, Vector3f *oErrorOut,
-    //                       Vector3f *dErrorOut) const;
+    inline Ray operator()(const Ray &r, Vector3f *oError,
+                          Vector3f *dError) const;
+    inline Ray operator()(const Ray &r, const Vector3f &oErrorIn,
+                          const Vector3f &dErrorIn, Vector3f *oErrorOut,
+                          Vector3f *dErrorOut) const;
     SurfaceInteraction operator()(const SurfaceInteraction &si) const;
     friend std::ostream &operator<<(std::ostream &os, const Transform &t) {
         os << "t=" << t.m << ", inv=" << t.mInv;
@@ -333,34 +333,34 @@ inline Vector3<T> Transform::operator()(const Vector3<T> &v,
                       m.m[2][0] * x + m.m[2][1] * y + m.m[2][2] * z);
 }
 
-// inline Ray Transform::operator()(const Ray &r, Vector3f *oError,
-//                                  Vector3f *dError) const {
-//     Point3f o = (*this)(r.o, oError);
-//     Vector3f d = (*this)(r.d, dError);
-//     Float tMax = r.tMax;
-//     Float lengthSquared = d.LengthSquared();
-//     if (lengthSquared > 0) {
-//         Float dt = Dot(Abs(d), *oError) / lengthSquared;
-//         o += d * dt;
-//         //        tMax -= dt;
-//     }
-//     return Ray(o, d, tMax, r.time, r.medium);
-// }
+inline Ray Transform::operator()(const Ray &r, Vector3f *oError,
+                                 Vector3f *dError) const {
+    Point3f o = (*this)(r.o, oError);
+    Vector3f d = (*this)(r.d, dError);
+    Float tMax = r.tMax;
+    Float lengthSquared = d.LengthSquared();
+    if (lengthSquared > 0) {
+        Float dt = Dot(Abs(d), *oError) / lengthSquared;
+        o += d * dt;
+        //        tMax -= dt;
+    }
+    return Ray(o, d, tMax, r.time, r.medium);
+}
 
-// inline Ray Transform::operator()(const Ray &r, const Vector3f &oErrorIn,
-//                                  const Vector3f &dErrorIn, Vector3f *oErrorOut,
-//                                  Vector3f *dErrorOut) const {
-//     Point3f o = (*this)(r.o, oErrorIn, oErrorOut);
-//     Vector3f d = (*this)(r.d, dErrorIn, dErrorOut);
-//     Float tMax = r.tMax;
-//     Float lengthSquared = d.LengthSquared();
-//     if (lengthSquared > 0) {
-//         Float dt = Dot(Abs(d), *oErrorOut) / lengthSquared;
-//         o += d * dt;
-//         //        tMax -= dt;
-//     }
-//     return Ray(o, d, tMax, r.time, r.medium);
-// }
+inline Ray Transform::operator()(const Ray &r, const Vector3f &oErrorIn,
+                                 const Vector3f &dErrorIn, Vector3f *oErrorOut,
+                                 Vector3f *dErrorOut) const {
+    Point3f o = (*this)(r.o, oErrorIn, oErrorOut);
+    Vector3f d = (*this)(r.d, dErrorIn, dErrorOut);
+    Float tMax = r.tMax;
+    Float lengthSquared = d.LengthSquared();
+    if (lengthSquared > 0) {
+        Float dt = Dot(Abs(d), *oErrorOut) / lengthSquared;
+        o += d * dt;
+        //        tMax -= dt;
+    }
+    return Ray(o, d, tMax, r.time, r.medium);
+}
 
 
 
@@ -373,8 +373,8 @@ class AnimatedTransform {
     static void Decompose(const Matrix4x4 &m, Vector3f *T, Quaternion *R,
                           Matrix4x4 *S);
     void Interpolate(Float time, Transform *t) const;
-    //Ray operator()(const Ray &r) const;
-    // RayDifferential operator()(const RayDifferential &r) const;
+    Ray operator()(const Ray &r) const;
+    RayDifferential operator()(const RayDifferential &r) const;
     Point3f operator()(Float time, const Point3f &p) const;
     Vector3f operator()(Float time, const Vector3f &v) const;
     bool HasScale() const {

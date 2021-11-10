@@ -86,6 +86,8 @@ class Transform;
 class Film;
 class Material;
 
+class Medium;
+
 inline bool compare_float(const Float &p1, const Float &v2) {
     return std::abs(p1 - v2) < ShadowEpsilon;
 }

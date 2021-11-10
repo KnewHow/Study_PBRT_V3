@@ -768,8 +768,9 @@ inline Bounds2iIterator end(const Bounds2i& b) {
 
 class Ray {
 public:
-    Ray(): tMax(Infinity){}
-    Ray(const Point3f &o, const Vector3f& d, Float tMax = Infinity):o(o), d(d), tMax(tMax){}
+    Ray(): tMax(Infinity), time(0), medium(nullptr){}
+    Ray(const Point3f &o, const Vector3f& d, Float tMax = Infinity, Float time = 0.0, const Medium *medium = nullptr)
+        :o(o), d(d), tMax(tMax), time(time), medium(medium){}
     Point3f operator()(Float t) const { return o + d * t; }
     friend std::ostream &operator<<(std::ostream &os, const Ray &ray) {
         os << "Ray: [o=" << ray.o << ", d=" << ray.d << ", tMax=" << ray.tMax << "]";
@@ -779,6 +780,44 @@ public:
     Point3f o; // the origin of the ray
     Vector3f d; // the direction of the ray, it must be normalize
     mutable Float tMax;// a varible to tag the maximum distance the ray can run along with the d
+    Float time; // The animated time, will be used when lerp
+    const Medium *medium; // the medium such foggy atmosphere, smoke, or scattering liquids like milk or shampoo when ray meet
+};
+
+class RayDifferential : public Ray {
+  public:
+    // RayDifferential Public Methods
+    RayDifferential() { hasDifferentials = false; }
+    RayDifferential(const Point3f &o, const Vector3f &d, Float tMax = Infinity,
+                    Float time = 0.f, const Medium *medium = nullptr)
+        : Ray(o, d, tMax, time, medium) {
+        hasDifferentials = false;
+    }
+    RayDifferential(const Ray &ray) : Ray(ray) { hasDifferentials = false; }
+    bool HasNaNs() const {
+        return Ray::HasNaNs() ||
+               (hasDifferentials &&
+                (rxOrigin.HasNaNs() || ryOrigin.HasNaNs() ||
+                 rxDirection.HasNaNs() || ryDirection.HasNaNs()));
+    }
+    void ScaleDifferentials(Float s) {
+        rxOrigin = o + (rxOrigin - o) * s;
+        ryOrigin = o + (ryOrigin - o) * s;
+        rxDirection = d + (rxDirection - d) * s;
+        ryDirection = d + (ryDirection - d) * s;
+    }
+    friend std::ostream &operator<<(std::ostream &os, const RayDifferential &r) {
+        os << "[ " << (Ray &)r << " has differentials: " <<
+            (r.hasDifferentials ? "true" : "false") << ", xo = " << r.rxOrigin <<
+            ", xd = " << r.rxDirection << ", yo = " << r.ryOrigin << ", yd = " <<
+            r.ryDirection;
+        return os;
+    }
+
+    // RayDifferential Public Data
+    bool hasDifferentials;
+    Point3f rxOrigin, ryOrigin;
+    Vector3f rxDirection, ryDirection;
 };
 
 template <typename T>
