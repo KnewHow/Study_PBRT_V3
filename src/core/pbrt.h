@@ -76,6 +76,7 @@ template <typename T>
 class Bounds2;
 template <typename T>
 class Bounds3;
+struct Quaternion;
 class Ray;
 class Interaction;
 class SurfaceInteraction;
