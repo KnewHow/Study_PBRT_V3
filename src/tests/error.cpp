@@ -3,6 +3,7 @@
 
 #include "pbrt_test.h"
 #include "stringprint.h"
+#include "efloat.h"
 
 using namespace pbrt;
 
@@ -31,4 +32,19 @@ TEST(GammaError, BasicTest) {
     Float sum_error = sum + error;
     LOG(INFO) << "[test gamma error] " << std::fixed <<std::setprecision( std::numeric_limits<Float>::max_digits10 ) << "sum is: " << sum << ", error is: " << error << ", sum error is: " << sum_error;
     EXPECT_NE(sum, sum_error);
+}
+
+TEST(EFloat, BasicTest) {
+    EFloat sum(0);
+    for(int i = 1; i <= 100; ++i) {
+        EFloat v(i);
+        sum = sum + v;
+    }
+    LOG(INFO) << "[EFloat test] sum is: " << sum;
+    EFloat product(1);
+    for(int i = 0; i < 10; ++i) {
+        EFloat v(get_random_Float(1, 5));
+        product = product * v;
+    }
+    LOG(INFO) << "[EFloat test] product is: " << product;
 }

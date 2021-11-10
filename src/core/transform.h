@@ -140,6 +140,23 @@ class Transform {
     Bounds3f operator()(const Bounds3f &b) const;
     Transform operator*(const Transform &t2) const;
     bool SwapsHandedness() const;
+    template <typename T>
+    inline Point3<T> operator()(const Point3<T> &pt,
+                                Vector3<T> *absError) const;
+    template <typename T>
+    inline Point3<T> operator()(const Point3<T> &p, const Vector3<T> &pError,
+                                Vector3<T> *pTransError) const;
+    template <typename T>
+    inline Vector3<T> operator()(const Vector3<T> &v,
+                                 Vector3<T> *vTransError) const;
+    template <typename T>
+    inline Vector3<T> operator()(const Vector3<T> &v, const Vector3<T> &vError,
+                                 Vector3<T> *vTransError) const;
+    // inline Ray operator()(const Ray &r, Vector3f *oError,
+    //                       Vector3f *dError) const;
+    // inline Ray operator()(const Ray &r, const Vector3f &oErrorIn,
+    //                       const Vector3f &dErrorIn, Vector3f *oErrorOut,
+    //                       Vector3f *dErrorOut) const;
     SurfaceInteraction operator()(const SurfaceInteraction &si) const;
     friend std::ostream &operator<<(std::ostream &os, const Transform &t) {
         os << "t=" << t.m << ", inv=" << t.mInv;
@@ -210,6 +227,140 @@ inline Ray Transform::operator()(const Ray &r) const {
     }
     return Ray(o, d, tMax);
 }
+template <typename T>
+inline Point3<T> Transform::operator()(const Point3<T> &p,
+                                       Vector3<T> *pError) const {
+    T x = p.x, y = p.y, z = p.z;
+    // Compute transformed coordinates from point _pt_
+    T xp = (m.m[0][0] * x + m.m[0][1] * y) + (m.m[0][2] * z + m.m[0][3]);
+    T yp = (m.m[1][0] * x + m.m[1][1] * y) + (m.m[1][2] * z + m.m[1][3]);
+    T zp = (m.m[2][0] * x + m.m[2][1] * y) + (m.m[2][2] * z + m.m[2][3]);
+    T wp = (m.m[3][0] * x + m.m[3][1] * y) + (m.m[3][2] * z + m.m[3][3]);
+
+    // Compute absolute error for transformed point
+    T xAbsSum = (std::abs(m.m[0][0] * x) + std::abs(m.m[0][1] * y) +
+                 std::abs(m.m[0][2] * z) + std::abs(m.m[0][3]));
+    T yAbsSum = (std::abs(m.m[1][0] * x) + std::abs(m.m[1][1] * y) +
+                 std::abs(m.m[1][2] * z) + std::abs(m.m[1][3]));
+    T zAbsSum = (std::abs(m.m[2][0] * x) + std::abs(m.m[2][1] * y) +
+                 std::abs(m.m[2][2] * z) + std::abs(m.m[2][3]));
+    *pError = gamma(3) * Vector3<T>(xAbsSum, yAbsSum, zAbsSum);
+    CHECK_NE(wp, 0);
+    if (wp == 1)
+        return Point3<T>(xp, yp, zp);
+    else
+        return Point3<T>(xp, yp, zp) / wp;
+}
+
+template <typename T>
+inline Point3<T> Transform::operator()(const Point3<T> &pt,
+                                       const Vector3<T> &ptError,
+                                       Vector3<T> *absError) const {
+    T x = pt.x, y = pt.y, z = pt.z;
+    T xp = (m.m[0][0] * x + m.m[0][1] * y) + (m.m[0][2] * z + m.m[0][3]);
+    T yp = (m.m[1][0] * x + m.m[1][1] * y) + (m.m[1][2] * z + m.m[1][3]);
+    T zp = (m.m[2][0] * x + m.m[2][1] * y) + (m.m[2][2] * z + m.m[2][3]);
+    T wp = (m.m[3][0] * x + m.m[3][1] * y) + (m.m[3][2] * z + m.m[3][3]);
+    absError->x =
+        (gamma(3) + (T)1) *
+            (std::abs(m.m[0][0]) * ptError.x + std::abs(m.m[0][1]) * ptError.y +
+             std::abs(m.m[0][2]) * ptError.z) +
+        gamma(3) * (std::abs(m.m[0][0] * x) + std::abs(m.m[0][1] * y) +
+                    std::abs(m.m[0][2] * z) + std::abs(m.m[0][3]));
+    absError->y =
+        (gamma(3) + (T)1) *
+            (std::abs(m.m[1][0]) * ptError.x + std::abs(m.m[1][1]) * ptError.y +
+             std::abs(m.m[1][2]) * ptError.z) +
+        gamma(3) * (std::abs(m.m[1][0] * x) + std::abs(m.m[1][1] * y) +
+                    std::abs(m.m[1][2] * z) + std::abs(m.m[1][3]));
+    absError->z =
+        (gamma(3) + (T)1) *
+            (std::abs(m.m[2][0]) * ptError.x + std::abs(m.m[2][1]) * ptError.y +
+             std::abs(m.m[2][2]) * ptError.z) +
+        gamma(3) * (std::abs(m.m[2][0] * x) + std::abs(m.m[2][1] * y) +
+                    std::abs(m.m[2][2] * z) + std::abs(m.m[2][3]));
+    CHECK_NE(wp, 0);
+    if (wp == 1.)
+        return Point3<T>(xp, yp, zp);
+    else
+        return Point3<T>(xp, yp, zp) / wp;
+}
+
+template <typename T>
+inline Vector3<T> Transform::operator()(const Vector3<T> &v,
+                                        Vector3<T> *absError) const {
+    T x = v.x, y = v.y, z = v.z;
+    absError->x =
+        gamma(3) * (std::abs(m.m[0][0] * v.x) + std::abs(m.m[0][1] * v.y) +
+                    std::abs(m.m[0][2] * v.z));
+    absError->y =
+        gamma(3) * (std::abs(m.m[1][0] * v.x) + std::abs(m.m[1][1] * v.y) +
+                    std::abs(m.m[1][2] * v.z));
+    absError->z =
+        gamma(3) * (std::abs(m.m[2][0] * v.x) + std::abs(m.m[2][1] * v.y) +
+                    std::abs(m.m[2][2] * v.z));
+    return Vector3<T>(m.m[0][0] * x + m.m[0][1] * y + m.m[0][2] * z,
+                      m.m[1][0] * x + m.m[1][1] * y + m.m[1][2] * z,
+                      m.m[2][0] * x + m.m[2][1] * y + m.m[2][2] * z);
+}
+
+template <typename T>
+inline Vector3<T> Transform::operator()(const Vector3<T> &v,
+                                        const Vector3<T> &vError,
+                                        Vector3<T> *absError) const {
+    T x = v.x, y = v.y, z = v.z;
+    absError->x =
+        (gamma(3) + (T)1) *
+            (std::abs(m.m[0][0]) * vError.x + std::abs(m.m[0][1]) * vError.y +
+             std::abs(m.m[0][2]) * vError.z) +
+        gamma(3) * (std::abs(m.m[0][0] * v.x) + std::abs(m.m[0][1] * v.y) +
+                    std::abs(m.m[0][2] * v.z));
+    absError->y =
+        (gamma(3) + (T)1) *
+            (std::abs(m.m[1][0]) * vError.x + std::abs(m.m[1][1]) * vError.y +
+             std::abs(m.m[1][2]) * vError.z) +
+        gamma(3) * (std::abs(m.m[1][0] * v.x) + std::abs(m.m[1][1] * v.y) +
+                    std::abs(m.m[1][2] * v.z));
+    absError->z =
+        (gamma(3) + (T)1) *
+            (std::abs(m.m[2][0]) * vError.x + std::abs(m.m[2][1]) * vError.y +
+             std::abs(m.m[2][2]) * vError.z) +
+        gamma(3) * (std::abs(m.m[2][0] * v.x) + std::abs(m.m[2][1] * v.y) +
+                    std::abs(m.m[2][2] * v.z));
+    return Vector3<T>(m.m[0][0] * x + m.m[0][1] * y + m.m[0][2] * z,
+                      m.m[1][0] * x + m.m[1][1] * y + m.m[1][2] * z,
+                      m.m[2][0] * x + m.m[2][1] * y + m.m[2][2] * z);
+}
+
+// inline Ray Transform::operator()(const Ray &r, Vector3f *oError,
+//                                  Vector3f *dError) const {
+//     Point3f o = (*this)(r.o, oError);
+//     Vector3f d = (*this)(r.d, dError);
+//     Float tMax = r.tMax;
+//     Float lengthSquared = d.LengthSquared();
+//     if (lengthSquared > 0) {
+//         Float dt = Dot(Abs(d), *oError) / lengthSquared;
+//         o += d * dt;
+//         //        tMax -= dt;
+//     }
+//     return Ray(o, d, tMax, r.time, r.medium);
+// }
+
+// inline Ray Transform::operator()(const Ray &r, const Vector3f &oErrorIn,
+//                                  const Vector3f &dErrorIn, Vector3f *oErrorOut,
+//                                  Vector3f *dErrorOut) const {
+//     Point3f o = (*this)(r.o, oErrorIn, oErrorOut);
+//     Vector3f d = (*this)(r.d, dErrorIn, dErrorOut);
+//     Float tMax = r.tMax;
+//     Float lengthSquared = d.LengthSquared();
+//     if (lengthSquared > 0) {
+//         Float dt = Dot(Abs(d), *oErrorOut) / lengthSquared;
+//         o += d * dt;
+//         //        tMax -= dt;
+//     }
+//     return Ray(o, d, tMax, r.time, r.medium);
+// }
+
 } // namespace pbrt
 
 

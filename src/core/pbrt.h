@@ -89,10 +89,17 @@ inline bool compare_float(const Float &p1, const Float &v2) {
     return std::abs(p1 - v2) < ShadowEpsilon;
 }
 
-inline float get_random_Float() {
+inline Float get_random_Float() {
     std::random_device dev;
     std::mt19937 rng(dev());
     std::uniform_real_distribution<Float> dist(0.0, 1.0);
+    return dist(rng);
+}
+
+inline Float get_random_Float(Float begin, Float end) {
+    std::random_device dev;
+    std::mt19937 rng(dev());
+    std::uniform_real_distribution<Float> dist(begin, end);
     return dist(rng);
 }
 
